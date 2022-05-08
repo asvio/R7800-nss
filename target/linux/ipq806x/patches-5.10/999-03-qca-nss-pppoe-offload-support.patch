@@ -242,7 +242,7 @@
  
  		error = ppp_register_net_channel(dev_net(dev), &po->chan);
  		if (error) {
-@@ -972,31 +972,103 @@ static int pppoe_xmit(struct ppp_channel
+@@ -972,32 +972,103 @@ static int pppoe_xmit(struct ppp_channel
  	return __pppoe_xmit(sk, skb);
  }
  
@@ -294,6 +294,7 @@
 -	path->encap.proto = htons(ETH_P_PPP_SES);
 -	path->encap.id = be16_to_cpu(po->num);
 -	memcpy(path->encap.h_dest, po->pppoe_pa.remote, ETH_ALEN);
+-	memcpy(ctx->daddr, po->pppoe_pa.remote, ETH_ALEN);
 -	path->dev = ctx->dev;
 -	ctx->dev = dev;
 +        sock_hold(sk);
