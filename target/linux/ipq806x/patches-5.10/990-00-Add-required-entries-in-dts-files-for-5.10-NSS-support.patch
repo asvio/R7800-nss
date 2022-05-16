@@ -421,3 +421,37 @@
 +	qcom,poll-required = <0>;	
 +	qcom,rgmii-delay = <0>;
 + };	
+--- b/arch/arm/boot/dts/qcom-ipq8065-rt4230w-rev6.dts
++++ a/arch/arm/boot/dts/qcom-ipq8065-rt4230w-rev6.dts
+@@ -244,10 +244,21 @@	
+		0x00054 0xc832c832  /* LED_CTRL_1 */
+		>;
+	};
++
++	phy4: ethernet-phy@4 {
++		reg = <4>;
++		qca,ar8327-initvals = <
++			0x000e4 0x6a545     /* MAC_POWER_SEL */
++			0x0000c 0x80        /* PAD6_MODE */
++			>;
++	};
+ };
+ 
+ &gmac0 {
+	status = "okay";
++	qcom,phy-mdio-addr = <4>;
++	qcom,poll-required = <0>;
++	qcom,rgmii-delay = <1>;
+	phy-mode = "rgmii";
+	qcom,id = <0>;
+	
+@@ -265,6 +276,9 @@	
+
+ &gmac1 {
+	status = "okay";
++	qcom,phy-mdio-addr = <0>;
++	qcom,poll-required = <0>;	
++	qcom,rgmii-delay = <0>;
+ 	phy-mode = "sgmii";
+	qcom,id = <1>;
+	
