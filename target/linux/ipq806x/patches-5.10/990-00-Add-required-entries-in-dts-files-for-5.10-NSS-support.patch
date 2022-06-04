@@ -167,36 +167,32 @@
  	};
  
  	sfpb_mutex: sfpb-mutex {
-@@ -1573,3 +1725,31 @@
+@@ -1573,3 +1725,27 @@
 		hwlocks = <&sfpb_mutex 3>;
 	};
  };
 +
 + &gmac1 {
 +	compatible = "qcom,nss-gmac";
-+	reg = <0x37200000 0x200000>;
-+	interrupts = <GIC_SPI 223 IRQ_TYPE_LEVEL_HIGH>;
++	qcom,id = <0>;
 +	qcom,pcs-chanid = <0>;
 +	qcom,phy_mii_type = <0>;
 +	qcom,emulation = <0>;
 +	qcom,forced-speed = <1000>;
 +	qcom,forced-duplex = <1>;
 +	qcom,socver = <0>;
-+	qcom,irq = <255>;
 +	mdiobus = <&mdio0>;
 + };
 +
 + &gmac2 {
 +	compatible = "qcom,nss-gmac";
-+	reg = <0x37400000 0x200000>;
-+	interrupts = <GIC_SPI 226 IRQ_TYPE_LEVEL_HIGH>;
++	qcom,id = <1>;
 +	qcom,pcs-chanid = <1>;
 +	qcom,phy_mii_type = <1>;
 +	qcom,emulation = <0>;
 +	qcom,forced-speed = <1000>;
 +	qcom,forced-duplex = <1>;
 +	qcom,socver = <0>;
-+	qcom,irq = <258>;
 +	mdiobus = <&mdio0>;
 + };	
 --- b/arch/arm/boot/dts/qcom-ipq8064-v2.0.dtsi
@@ -393,7 +389,7 @@
  &nand_controller {
 --- b/arch/arm/boot/dts/qcom-ipq8065.dtsi
 +++ a/arch/arm/boot/dts/qcom-ipq8065.dtsi
-@@ -165,3 +165,27 @@
+@@ -165,3 +165,15 @@
 	 	opp-level = <2>;
  	};
  };
@@ -409,21 +405,53 @@
 +	qcom,mid-frequency = <800000000>;
 +	qcom,max-frequency = <800000000>;
 + };
-+
-+ &gmac1 {
+--- b/arch/arm/boot/dts/qcom-ipq8065-nighthawk.dtsi
++++ a/arch/arm/boot/dts/qcom-ipq8065-nighthawk.dtsi
+@@ -353,6 +353,9 @@
+	qcom,phy_mdio_addr = <4>;
+	qcom,poll_required = <0>;
+	qcom,rgmii_delay = <1>;
 +	qcom,phy-mdio-addr = <4>;
 +	qcom,poll-required = <0>;
 +	qcom,rgmii-delay = <1>;
-+ };
-+	
-+ &gmac2 {
+	qcom,phy_mii_type = <0>;
+	qcom,emulation = <0>;
+	qcom,irq = <255>;
+@@ -378,6 +381,9 @@
+	qcom,phy_mdio_addr = <0>;	/* none */
+	qcom,poll_required = <0>;	/* no polling */
+	qcom,rgmii_delay = <0>;
 +	qcom,phy-mdio-addr = <0>;
 +	qcom,poll-required = <0>;	
 +	qcom,rgmii-delay = <0>;
-+ };	
+	qcom,phy_mii_type = <1>;
+	qcom,emulation = <0>;
+	qcom,irq = <258>;
+--- b/arch/arm/boot/dts/qcom-ipq8065-nbg6817.dts
++++ a/arch/arm/boot/dts/qcom-ipq8065-nbg6817.dts
+@@ -273,6 +273,9 @@
+	qcom,phy_mdio_addr = <4>;
+	qcom,poll_required = <0>;
+	qcom,rgmii_delay = <1>;
++	qcom,phy-mdio-addr = <4>;
++	qcom,poll-required = <0>;
++	qcom,rgmii-delay = <1>;
+	qcom,phy_mii_type = <0>;
+	qcom,emulation = <0>;
+	qcom,irq = <255>;
+@@ -294,6 +297,9 @@
+	qcom,phy_mdio_addr = <0>;	/* none */
+	qcom,poll_required = <0>;	/* no polling */
+	qcom,rgmii_delay = <0>;
++	qcom,phy-mdio-addr = <0>;
++	qcom,poll-required = <0>;	
++	qcom,rgmii-delay = <0>;
+	qcom,phy_mii_type = <1>;
+	qcom,emulation = <0>;
+	qcom,irq = <258>;
 --- b/arch/arm/boot/dts/qcom-ipq8065-rt4230w-rev6.dts
 +++ a/arch/arm/boot/dts/qcom-ipq8065-rt4230w-rev6.dts
-@@ -244,10 +244,21 @@	
+@@ -244,10 +244,28 @@	
 		0x00054 0xc832c832  /* LED_CTRL_1 */
 		>;
 	};
@@ -439,19 +467,33 @@
  
  &gmac0 {
 	status = "okay";
++	compatible = "qcom,nss-gmac";
++	qcom,id = <0>;
++	qcom,pcs-chanid = <0>;
 +	qcom,phy-mdio-addr = <4>;
 +	qcom,poll-required = <0>;
 +	qcom,rgmii-delay = <1>;
++	qcom,forced-speed = <1000>;
++	qcom,forced-duplex = <1>;
++	mdiobus = <&mdio0>;
++	qcom,socver = <0>;
 	phy-mode = "rgmii";
 	qcom,id = <0>;
 	
-@@ -265,6 +276,9 @@	
+@@ -265,6 +276,16 @@	
 
  &gmac1 {
 	status = "okay";
++	compatible = "qcom,nss-gmac";
++	qcom,id = <1>;
++	qcom,pcs-chanid = <1>;
 +	qcom,phy-mdio-addr = <0>;
 +	qcom,poll-required = <0>;	
 +	qcom,rgmii-delay = <0>;
++	qcom,forced-speed = <1000>;
++	qcom,forced-duplex = <1>;
++	mdiobus = <&mdio0>;
++	qcom,socver = <0>;
  	phy-mode = "sgmii";
 	qcom,id = <1>;
 	
