@@ -77,6 +77,7 @@ endef
 define KernelPackage/qca-nss-ecm-standard
   $(call KernelPackage/qca-nss-ecm/Default)
   VARIANT:=standard
+  DEPENDS+=+PACKAGE_kmod-pppol2tp:kmod-pppol2tp
 endef
 
 define KernelPackage/qca-nss-ecm-standard/Description
