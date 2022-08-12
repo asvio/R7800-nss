@@ -211,6 +211,22 @@ ECM_MAKE_OPTS+=ECM_INTERFACE_OVS_BRIDGE_ENABLE=y \
 EXTRA_CFLAGS+= -I$(STAGING_DIR)/usr/include/qca-ovsmgr
 endif
 
+ifneq ($(CONFIG_PACKAGE_kmod-ipsec),)
+ECM_MAKE_OPTS+=ECM_INTERFACE_IPSEC_ENABLE=y
+endif
+
+ifneq ($(CONFIG_PACKAGE_kmod-pppol2tp),)
+ECM_MAKE_OPTS+=ECM_INTERFACE_L2TPV2_ENABLE=y
+endif
+
+ifneq ($(CONFIG_PACKAGE_kmod-sit),)
+ECM_MAKE_OPTS+=ECM_INTERFACE_SIT_ENABLE=y
+endif
+
+ifneq ($(CONFIG_PACKAGE_kmod-ip6-tunnel),)
+ECM_MAKE_OPTS+=ECM_INTERFACE_TUNIPIP6_ENABLE=y
+endif
+
 # Keeping default as ipq806x for branches that does not have subtarget framework
 ifeq ($(CONFIG_TARGET_ipq),y)
 subtarget:=$(SUBTARGET)
