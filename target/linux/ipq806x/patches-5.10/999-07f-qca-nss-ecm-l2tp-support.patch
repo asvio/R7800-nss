@@ -346,3 +346,63 @@
   
   /* Register the PPP channel connect notifier */
   extern void ppp_channel_connection_register_notify(struct notifier_block *nb);
+--- a/net/l2tp/l2tp_core.h
++++ b/net/l2tp/l2tp_core.h
+@@ -232,6 +232,9 @@ struct l2tp_session *l2tp_session_get_nt
+ struct l2tp_session *l2tp_session_get_by_ifname(const struct net *net,
+ 						const char *ifname);
+ 
++void l2tp_stats_update(struct l2tp_tunnel *tunnel, struct l2tp_session *session,
++                       struct l2tp_stats *stats);
++
+ /* Tunnel and session lifetime management.
+  * Creation of a new instance is a two-step process: create, then register.
+  * Destruction is triggered using the *_delete functions, and completes asynchronously.
+*** a/net/l2tp/l2tp_ppp.c	2022-08-20 11:19:37.748454800 +0900
+--- b/net/l2tp/l2tp_ppp.c	2022-08-20 11:24:40.138454800 +0900
+*************** struct pppol2tp_session {
+*** 123,131 ****
+  };
+  
+  static int pppol2tp_xmit(struct ppp_channel *chan, struct sk_buff *skb);
+! 
+! static const struct ppp_channel_ops pppol2tp_chan_ops = {
+! 	.start_xmit =  pppol2tp_xmit,
+  };
+  
+  static const struct proto_ops pppol2tp_ops;
+--- 123,139 ----
+  };
+  
+  static int pppol2tp_xmit(struct ppp_channel *chan, struct sk_buff *skb);
+! static int pppol2tp_get_channel_protocol(struct ppp_channel *);
+! static int pppol2tp_get_channel_protocol_ver(struct ppp_channel *);
+! static void pppol2tp_hold_chan(struct ppp_channel *);
+! static void pppol2tp_release_chan(struct ppp_channel *);
+! 
+! static const struct pppol2tp_channel_ops pppol2tp_chan_ops = {
+! 	.ops.start_xmit =  pppol2tp_xmit,
+! 	.ops.get_channel_protocol = pppol2tp_get_channel_protocol,
+! 	.ops.get_channel_protocol_ver = pppol2tp_get_channel_protocol_ver,
+! 	.ops.hold = pppol2tp_hold_chan,
+! 	.ops.release = pppol2tp_release_chan,
+  };
+  
+  static const struct proto_ops pppol2tp_ops;
+*************** static int pppol2tp_connect(struct socke
+*** 809,815 ****
+  	po->chan.hdrlen = PPPOL2TP_L2TP_HDR_SIZE_NOSEQ;
+  
+  	po->chan.private = sk;
+! 	po->chan.ops	 = &pppol2tp_chan_ops;
+  	po->chan.mtu	 = pppol2tp_tunnel_mtu(tunnel);
+  
+  	error = ppp_register_net_channel(sock_net(sk), &po->chan);
+--- 875,881 ----
+  	po->chan.hdrlen = PPPOL2TP_L2TP_HDR_SIZE_NOSEQ;
+  
+  	po->chan.private = sk;
+! 	po->chan.ops	 = (struct ppp_channel_ops *)&pppol2tp_chan_ops.ops;
+  	po->chan.mtu	 = pppol2tp_tunnel_mtu(tunnel);
+  
+  	error = ppp_register_net_channel(sock_net(sk), &po->chan);
