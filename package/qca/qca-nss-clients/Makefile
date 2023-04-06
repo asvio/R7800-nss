@@ -4,7 +4,7 @@ include $(INCLUDE_DIR)/kernel.mk
 PKG_NAME:=qca-nss-clients
 PKG_RELEASE:=2
 
-PKG_SOURCE_URL:=https://source.codeaurora.org/quic/qsdk/oss/lklm/nss-clients
+PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-clients.git
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_VERSION:=740d0102c518cd49f30c5580982b218b480006b1
 
