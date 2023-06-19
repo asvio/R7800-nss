@@ -103,7 +103,7 @@
  			goto out;
 --- a/net/bridge/br_input.c
 +++ b/net/bridge/br_input.c
-@@ -24,6 +24,16 @@
+@@ -23,6 +23,16 @@
  #include "br_private_tunnel.h"
  #include "br_private_offload.h"
  
@@ -120,7 +120,7 @@
  static int
  br_netif_receive_skb(struct net *net, struct sock *sk, struct sk_buff *skb)
  {
-@@ -31,7 +41,7 @@ br_netif_receive_skb(struct net *net, st
+@@ -30,7 +40,7 @@ br_netif_receive_skb(struct net *net, st
  	return netif_receive_skb(skb);
  }
  
@@ -129,7 +129,7 @@
  {
  	struct net_device *indev, *brdev = BR_INPUT_SKB_CB(skb)->brdev;
  	struct net_bridge *br = netdev_priv(brdev);
-@@ -70,6 +80,7 @@ static int br_pass_frame_up(struct sk_bu
+@@ -69,6 +79,7 @@ static int br_pass_frame_up(struct sk_bu
  		       dev_net(indev), NULL, skb, indev, NULL,
  		       br_netif_receive_skb);
  }
@@ -137,7 +137,7 @@
  
  /* note: already called with rcu_read_lock */
  int br_handle_frame_finish(struct net *net, struct sock *sk, struct sk_buff *skb)
-@@ -85,6 +96,11 @@ int br_handle_frame_finish(struct net *n
+@@ -84,6 +95,11 @@ int br_handle_frame_finish(struct net *n
  	struct net_bridge *br;
  	u16 vid = 0;
  	u8 state;
@@ -149,7 +149,7 @@
  
  	if (!p || p->state == BR_STATE_DISABLED)
  		goto drop;
-@@ -141,6 +157,11 @@ int br_handle_frame_finish(struct net *n
+@@ -140,6 +156,11 @@ int br_handle_frame_finish(struct net *n
  
  	switch (pkt_type) {
  	case BR_PKT_MULTICAST:
@@ -161,7 +161,7 @@
  		mdst = br_mdb_get(brmctx, skb, vid);
  		if ((mdst || BR_INPUT_SKB_CB_MROUTERS_ONLY(skb)) &&
  		    br_multicast_querier_exists(brmctx, eth_hdr(skb), mdst)) {
-@@ -156,8 +177,15 @@ int br_handle_frame_finish(struct net *n
+@@ -155,8 +176,15 @@ int br_handle_frame_finish(struct net *n
  		}
  		break;
  	case BR_PKT_UNICAST:
@@ -179,7 +179,7 @@
  	default:
  		break;
  	}
-@@ -172,13 +200,20 @@ int br_handle_frame_finish(struct net *n
+@@ -171,12 +199,19 @@ int br_handle_frame_finish(struct net *n
  			dst->used = now;
  		br_forward(dst->dst, skb, local_rcv, false);
  	} else {
@@ -190,7 +190,6 @@
 +		}
 +		/* QCA qca-mcs support - End */
 +
- 		br_offload_skb_disable(skb);
  		if (!mcast_hit)
  			br_flood(br, skb, pkt_type, local_rcv, false);
  		else
