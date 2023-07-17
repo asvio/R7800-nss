@@ -1,5 +1,14 @@
+<<<<<<< HEAD
 src-git packages https://git.openwrt.org/feed/packages.git
 src-git luci https://git.openwrt.org/project/luci.git
 src-git routing https://git.openwrt.org/feed/routing.git
 src-git telephony https://git.openwrt.org/feed/telephony.git
 src-git nss https://github.com/ACwifidude/nss-packages.git
+=======
+src-git packages https://git.openwrt.org/feed/packages.git;openwrt-23.05
+src-git luci https://git.openwrt.org/project/luci.git;openwrt-23.05
+src-git routing https://git.openwrt.org/feed/routing.git;openwrt-23.05
+src-git telephony https://git.openwrt.org/feed/telephony.git;openwrt-23.05
+src-git nss https://github.com/ACwifidude/nss-packages.git;NSS-11.2-K5.15
+src-git sqm_scripts_nss https://github.com/rickkdotnet/sqm-scripts-nss.git
+>>>>>>> c78c6de7e2 (add Kong sqm script)
