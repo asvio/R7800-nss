@@ -1,6 +1,6 @@
 --- a/include/linux/if_bridge.h
 +++ b/include/linux/if_bridge.h
-@@ -198,7 +198,6 @@ extern struct net_device *br_port_dev_ge
+@@ -197,7 +197,6 @@ extern struct net_device *br_port_dev_ge
  					  unsigned char *addr,
  					  struct sk_buff *skb,
  					  unsigned int cookie);
@@ -10,7 +10,7 @@
  						     const char *addr,
 --- a/net/bridge/br_fdb.c
 +++ b/net/bridge/br_fdb.c
-@@ -1465,26 +1465,6 @@ void br_fdb_clear_offload(const struct n
+@@ -1460,26 +1460,6 @@ void br_fdb_clear_offload(const struct n
  EXPORT_SYMBOL_GPL(br_fdb_clear_offload);
  
  /* QCA NSS ECM support - Start */
@@ -39,7 +39,7 @@
  {
 --- a/drivers/net/ppp/ppp_generic.c
 +++ b/drivers/net/ppp/ppp_generic.c
-@@ -3772,34 +3772,6 @@ int ppp_channel_get_proto_version(struct
+@@ -3800,34 +3800,6 @@ int ppp_channel_get_proto_version(struct
  }
  EXPORT_SYMBOL(ppp_channel_get_proto_version);
  
@@ -76,7 +76,7 @@
  {
 --- a/include/linux/ppp_channel.h
 +++ b/include/linux/ppp_channel.h
-@@ -99,12 +99,6 @@ extern int ppp_channel_get_protocol(stru
+@@ -144,12 +144,6 @@ extern int ppp_channel_get_protocol(stru
  /* Call this get protocol version */
  extern int ppp_channel_get_proto_version(struct ppp_channel *);
  
@@ -91,7 +91,7 @@
  				 unsigned int chan_sz);
 --- a/drivers/net/ppp/pptp.c
 +++ b/drivers/net/ppp/pptp.c
-@@ -92,32 +92,6 @@ static int lookup_chan_dst(u16 call_id,
+@@ -93,32 +93,6 @@ static int lookup_chan_dst(u16 call_id,
  	return i < MAX_CALLID;
  }
  
@@ -124,7 +124,7 @@
  /* Search a pptp session based on peer call id and peer ip address */
  static int lookup_session_dst(struct pptp_opt *opt, u16 call_id, __be32 d_addr)
  {
-@@ -748,20 +722,6 @@ int pptp_session_find(struct pptp_opt *o
+@@ -758,20 +732,6 @@ int pptp_session_find(struct pptp_opt *o
  }
  EXPORT_SYMBOL(pptp_session_find);
  

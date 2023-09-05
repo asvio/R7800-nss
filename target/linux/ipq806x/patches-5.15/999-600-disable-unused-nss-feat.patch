@@ -1,6 +1,6 @@
 --- a/arch/arm/boot/dts/qcom-ipq8064.dtsi
 +++ b/arch/arm/boot/dts/qcom-ipq8064.dtsi
-@@ -1513,7 +1513,6 @@
+@@ -1523,7 +1523,6 @@
  			qcom,load-addr = <0x40000000>;
  			qcom,turbo-frequency;
  
@@ -8,7 +8,7 @@
  			qcom,gre-enabled;
  			qcom,gre-redir-enabled;
  			qcom,gre_tunnel_enabled;
-@@ -1532,12 +1531,10 @@
+@@ -1542,12 +1541,10 @@
  			qcom,vlan-enabled;
  			qcom,wlan-dataplane-offload-enabled;
  			qcom,wlanredirect-enabled;
