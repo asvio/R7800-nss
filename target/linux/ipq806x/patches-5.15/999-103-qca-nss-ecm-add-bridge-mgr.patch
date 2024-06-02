@@ -11,7 +11,7 @@ Subject: [PATCH] Update 605-qca-add-add-nss-bridge-mgr-support.patch for
 
 --- a/include/linux/if_bridge.h
 +++ b/include/linux/if_bridge.h
-@@ -231,4 +231,8 @@ typedef struct net_bridge_port *br_get_d
+@@ -230,4 +230,8 @@ typedef struct net_bridge_port *br_get_d
  extern br_get_dst_hook_t __rcu *br_get_dst_hook;
  /* QCA NSS ECM support - End */
  
@@ -22,7 +22,7 @@ Subject: [PATCH] Update 605-qca-add-add-nss-bridge-mgr-support.patch for
  #endif
 --- a/net/bridge/br_fdb.c
 +++ b/net/bridge/br_fdb.c
-@@ -67,6 +67,15 @@ void br_fdb_update_unregister_notify(str
+@@ -66,6 +66,15 @@ void br_fdb_update_unregister_notify(str
  EXPORT_SYMBOL_GPL(br_fdb_update_unregister_notify);
  /* QCA NSS ECM support - End */
  
@@ -38,7 +38,7 @@ Subject: [PATCH] Update 605-qca-add-add-nss-bridge-mgr-support.patch for
  int __init br_fdb_init(void)
  {
  	br_fdb_cache = kmem_cache_create("bridge_fdb_cache",
-@@ -372,7 +381,7 @@ void br_fdb_cleanup(struct work_struct *
+@@ -371,7 +380,7 @@ void br_fdb_cleanup(struct work_struct *
  	unsigned long delay = hold_time(br);
  	unsigned long work_delay = delay;
  	unsigned long now = jiffies;
@@ -47,7 +47,7 @@ Subject: [PATCH] Update 605-qca-add-add-nss-bridge-mgr-support.patch for
  
  	/* this part is tricky, in order to avoid blocking learning and
  	 * consequently forwarding, we rely on rcu to delete objects with
-@@ -400,12 +409,13 @@ void br_fdb_cleanup(struct work_struct *
+@@ -399,12 +408,13 @@ void br_fdb_cleanup(struct work_struct *
  		} else {
  			spin_lock_bh(&br->hash_lock);
  			if (!hlist_unhashed(&f->fdb_node)) {
@@ -63,7 +63,7 @@ Subject: [PATCH] Update 605-qca-add-add-nss-bridge-mgr-support.patch for
  				/* QCA NSS ECM support - End */
  			}
  			spin_unlock_bh(&br->hash_lock);
-@@ -623,6 +633,7 @@ void br_fdb_update(struct net_bridge *br
+@@ -620,6 +630,7 @@ void br_fdb_update(struct net_bridge *br
  		   const unsigned char *addr, u16 vid, unsigned long flags)
  {
  	struct net_bridge_fdb_entry *fdb;
@@ -71,7 +71,7 @@ Subject: [PATCH] Update 605-qca-add-add-nss-bridge-mgr-support.patch for
  
  	/* some users want to always flood. */
  	if (hold_time(br) == 0)
-@@ -648,6 +659,12 @@ void br_fdb_update(struct net_bridge *br
+@@ -645,6 +656,12 @@ void br_fdb_update(struct net_bridge *br
  			if (unlikely(source != READ_ONCE(fdb->dst) &&
  				     !test_bit(BR_FDB_STICKY, &fdb->flags))) {
  				br_switchdev_fdb_notify(br, fdb, RTM_DELNEIGH);
@@ -84,7 +84,7 @@ Subject: [PATCH] Update 605-qca-add-add-nss-bridge-mgr-support.patch for
  				WRITE_ONCE(fdb->dst, source);
  				fdb_modified = true;
  				/* Take over HW learned entry */
-@@ -659,7 +676,7 @@ void br_fdb_update(struct net_bridge *br
+@@ -656,7 +673,7 @@ void br_fdb_update(struct net_bridge *br
  				/* QCA NSS ECM support - Start */
  				atomic_notifier_call_chain(
  					&br_fdb_update_notifier_list,

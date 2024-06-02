@@ -1,6 +1,6 @@
 --- a/include/linux/if_bridge.h
 +++ b/include/linux/if_bridge.h
-@@ -235,4 +235,17 @@ extern br_get_dst_hook_t __rcu *br_get_d
+@@ -234,4 +234,17 @@ extern br_get_dst_hook_t __rcu *br_get_d
  extern struct net_device *br_fdb_bridge_dev_get_and_hold(struct net_bridge *br);
  /* QCA NSS bridge-mgr support - End */
  
@@ -20,7 +20,7 @@
  #endif
 --- a/net/bridge/br_fdb.c
 +++ b/net/bridge/br_fdb.c
-@@ -186,6 +186,7 @@ struct net_bridge_fdb_entry *br_fdb_find
+@@ -185,6 +185,7 @@ struct net_bridge_fdb_entry *br_fdb_find
  {
  	return fdb_find_rcu(&br->fdb_hash_tbl, addr, vid);
  }
@@ -28,7 +28,7 @@
  
  /* When a static FDB entry is added, the mac address from the entry is
   * added to the bridge private HW address list and all required ports
-@@ -892,6 +893,7 @@ static void fdb_notify(struct net_bridge
+@@ -887,6 +888,7 @@ static void fdb_notify(struct net_bridge
  		kfree_skb(skb);
  		goto errout;
  	}
@@ -38,7 +38,7 @@
  errout:
 --- a/net/bridge/br_private.h
 +++ b/net/bridge/br_private.h
-@@ -853,6 +853,7 @@ void br_manage_promisc(struct net_bridge
+@@ -833,6 +833,7 @@ void br_manage_promisc(struct net_bridge
  int nbp_backup_change(struct net_bridge_port *p, struct net_device *backup_dev);
  
  /* br_input.c */
@@ -46,7 +46,7 @@
  int br_handle_frame_finish(struct net *net, struct sock *sk, struct sk_buff *skb);
  rx_handler_func_t *br_get_rx_handler(const struct net_device *dev);
  
-@@ -2125,4 +2126,14 @@ struct nd_msg *br_is_nd_neigh_msg(struct
+@@ -2105,4 +2106,14 @@ struct nd_msg *br_is_nd_neigh_msg(struct
  #define __br_get(__hook, __default, __args ...) \
  		(__hook ? (__hook(__args)) : (__default))
  /* QCA NSS ECM support - End */
@@ -73,7 +73,7 @@
  errout:
 --- a/net/bridge/br.c
 +++ b/net/bridge/br.c
-@@ -463,6 +463,12 @@ static void __exit br_deinit(void)
+@@ -455,6 +455,12 @@ static void __exit br_deinit(void)
  	br_fdb_fini();
  }
  
@@ -103,9 +103,9 @@
  			goto out;
 --- a/net/bridge/br_input.c
 +++ b/net/bridge/br_input.c
-@@ -24,6 +24,16 @@
+@@ -23,6 +23,16 @@
+ #include "br_private.h"
  #include "br_private_tunnel.h"
- #include "br_private_offload.h"
  
 +/* QCA qca-mcs support - Start */
 +/* Hook for external Multicast handler */
@@ -120,7 +120,7 @@
  static int
  br_netif_receive_skb(struct net *net, struct sock *sk, struct sk_buff *skb)
  {
-@@ -31,7 +41,7 @@ br_netif_receive_skb(struct net *net, st
+@@ -30,7 +40,7 @@ br_netif_receive_skb(struct net *net, st
  	return netif_receive_skb(skb);
  }
  
@@ -129,7 +129,7 @@
  {
  	struct net_device *indev, *brdev = BR_INPUT_SKB_CB(skb)->brdev;
  	struct net_bridge *br = netdev_priv(brdev);
-@@ -70,6 +80,7 @@ static int br_pass_frame_up(struct sk_bu
+@@ -69,6 +79,7 @@ static int br_pass_frame_up(struct sk_bu
  		       dev_net(indev), NULL, skb, indev, NULL,
  		       br_netif_receive_skb);
  }
@@ -137,7 +137,7 @@
  
  /* note: already called with rcu_read_lock */
  int br_handle_frame_finish(struct net *net, struct sock *sk, struct sk_buff *skb)
-@@ -85,6 +96,11 @@ int br_handle_frame_finish(struct net *n
+@@ -84,6 +95,11 @@ int br_handle_frame_finish(struct net *n
  	struct net_bridge *br;
  	u16 vid = 0;
  	u8 state;
@@ -149,7 +149,7 @@
  
  	if (!p || p->state == BR_STATE_DISABLED)
  		goto drop;
-@@ -141,6 +157,11 @@ int br_handle_frame_finish(struct net *n
+@@ -140,6 +156,11 @@ int br_handle_frame_finish(struct net *n
  
  	switch (pkt_type) {
  	case BR_PKT_MULTICAST:
@@ -161,7 +161,7 @@
  		mdst = br_mdb_get(brmctx, skb, vid);
  		if ((mdst || BR_INPUT_SKB_CB_MROUTERS_ONLY(skb)) &&
  		    br_multicast_querier_exists(brmctx, eth_hdr(skb), mdst)) {
-@@ -156,8 +177,15 @@ int br_handle_frame_finish(struct net *n
+@@ -155,8 +176,15 @@ int br_handle_frame_finish(struct net *n
  		}
  		break;
  	case BR_PKT_UNICAST:
@@ -179,7 +179,7 @@
  	default:
  		break;
  	}
-@@ -172,12 +200,19 @@ int br_handle_frame_finish(struct net *n
+@@ -171,12 +199,19 @@ int br_handle_frame_finish(struct net *n
  			dst->used = now;
  		br_forward(dst->dst, skb, local_rcv, false);
  	} else {
