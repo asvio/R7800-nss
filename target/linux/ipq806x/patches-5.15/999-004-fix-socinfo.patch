@@ -1,5 +1,5 @@
---- a/drivers/soc/qcom/socinfo.c	2022-11-07 08:55:57.097003500 +0900
-+++ b/drivers/soc/qcom/socinfo.c	2022-11-07 09:03:58.447003500 +0900
+--- a/drivers/soc/qcom/socinfo.c
++++ b/drivers/soc/qcom/socinfo.c
 @@ -230,6 +230,7 @@ static const struct soc_id soc_id[] = {
  	{ 198, "MSM8126" },
  	{ 199, "APQ8026" },

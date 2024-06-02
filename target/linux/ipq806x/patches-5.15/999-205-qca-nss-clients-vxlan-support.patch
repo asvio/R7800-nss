@@ -59,7 +59,7 @@
  /* caller should hold vxlan->hash_lock */
  static struct vxlan_rdst *vxlan_fdb_find_rdst(struct vxlan_fdb *f,
  					      union vxlan_addr *ip, __be16 port,
-@@ -2744,6 +2775,9 @@ static void vxlan_xmit_one(struct sk_buf
+@@ -2746,6 +2777,9 @@ static void vxlan_xmit_one(struct sk_buf
  			goto out_unlock;
  		}
  
@@ -69,7 +69,7 @@
  		tos = ip_tunnel_ecn_encap(tos, old_iph, skb);
  		ttl = ttl ? : ip4_dst_hoplimit(&rt->dst);
  		err = vxlan_build_skb(skb, ndst, sizeof(struct iphdr),
-@@ -2814,6 +2848,9 @@ static void vxlan_xmit_one(struct sk_buf
+@@ -2817,6 +2851,9 @@ static void vxlan_xmit_one(struct sk_buf
  		if (err < 0)
  			goto tx_error;
  
@@ -101,7 +101,7 @@
  struct net_device *vxlan_dev_create(struct net *net, const char *name,
  				    u8 name_assign_type, struct vxlan_config *conf);
  
-@@ -376,6 +389,15 @@ static inline __be32 vxlan_compute_rco(u
+@@ -381,6 +394,15 @@ static inline __be32 vxlan_compute_rco(u
  	return vni_field;
  }
  
