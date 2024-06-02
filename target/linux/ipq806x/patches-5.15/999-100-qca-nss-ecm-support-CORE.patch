@@ -452,7 +452,7 @@
 +/* QCA NSS ECM support - End */
 --- a/net/bridge/br_private.h
 +++ b/net/bridge/br_private.h
-@@ -2100,4 +2100,9 @@ void br_do_proxy_suppress_arp(struct sk_
+@@ -2101,4 +2101,9 @@ void br_do_proxy_suppress_arp(struct sk_
  void br_do_suppress_nd(struct sk_buff *skb, struct net_bridge *br,
  		       u16 vid, struct net_bridge_port *p, struct nd_msg *msg);
  struct nd_msg *br_is_nd_neigh_msg(struct sk_buff *skb, struct nd_msg *m);
@@ -602,7 +602,7 @@
  
  static void
  ipv6_link_dev_addr(struct inet6_dev *idev, struct inet6_ifaddr *ifp)
-@@ -2064,6 +2065,7 @@ struct inet6_ifaddr *ipv6_get_ifaddr(str
+@@ -2065,6 +2066,7 @@ struct inet6_ifaddr *ipv6_get_ifaddr(str
  
  	return result;
  }

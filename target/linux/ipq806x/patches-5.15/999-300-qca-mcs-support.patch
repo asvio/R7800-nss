@@ -38,15 +38,15 @@
  errout:
 --- a/net/bridge/br_private.h
 +++ b/net/bridge/br_private.h
-@@ -833,6 +833,7 @@ void br_manage_promisc(struct net_bridge
+@@ -834,6 +834,7 @@ void br_manage_promisc(struct net_bridge
  int nbp_backup_change(struct net_bridge_port *p, struct net_device *backup_dev);
  
  /* br_input.c */
-+int br_pass_frame_up(struct sk_buff *skb); /* QCA qca-mcs support */
++int br_pass_frame_up(struct sk_buff *skb, bool promisc); /* QCA qca-mcs support */
  int br_handle_frame_finish(struct net *net, struct sock *sk, struct sk_buff *skb);
  rx_handler_func_t *br_get_rx_handler(const struct net_device *dev);
  
-@@ -2105,4 +2106,14 @@ struct nd_msg *br_is_nd_neigh_msg(struct
+@@ -2106,4 +2107,14 @@ struct nd_msg *br_is_nd_neigh_msg(struct
  #define __br_get(__hook, __default, __args ...) \
  		(__hook ? (__hook(__args)) : (__default))
  /* QCA NSS ECM support - End */
@@ -124,12 +124,12 @@
  	return netif_receive_skb(skb);
  }
  
--static int br_pass_frame_up(struct sk_buff *skb)
-+int br_pass_frame_up(struct sk_buff *skb)
+-static int br_pass_frame_up(struct sk_buff *skb, bool promisc)
++int br_pass_frame_up(struct sk_buff *skb, bool promisc)
  {
  	struct net_device *indev, *brdev = BR_INPUT_SKB_CB(skb)->brdev;
  	struct net_bridge *br = netdev_priv(brdev);
-@@ -69,6 +79,7 @@ static int br_pass_frame_up(struct sk_bu
+@@ -71,6 +81,7 @@ static int br_pass_frame_up(struct sk_bu
  		       dev_net(indev), NULL, skb, indev, NULL,
  		       br_netif_receive_skb);
  }
@@ -137,8 +137,8 @@
  
  /* note: already called with rcu_read_lock */
  int br_handle_frame_finish(struct net *net, struct sock *sk, struct sk_buff *skb)
-@@ -84,6 +95,11 @@ int br_handle_frame_finish(struct net *n
- 	struct net_bridge *br;
+@@ -87,6 +98,11 @@ int br_handle_frame_finish(struct net *n
+ 	bool promisc;
  	u16 vid = 0;
  	u8 state;
 +	/* QCA qca-mcs support - Start */
@@ -149,7 +149,7 @@
  
  	if (!p || p->state == BR_STATE_DISABLED)
  		goto drop;
-@@ -140,6 +156,11 @@ int br_handle_frame_finish(struct net *n
+@@ -145,6 +161,11 @@ int br_handle_frame_finish(struct net *n
  
  	switch (pkt_type) {
  	case BR_PKT_MULTICAST:
@@ -161,7 +161,7 @@
  		mdst = br_mdb_get(brmctx, skb, vid);
  		if ((mdst || BR_INPUT_SKB_CB_MROUTERS_ONLY(skb)) &&
  		    br_multicast_querier_exists(brmctx, eth_hdr(skb), mdst)) {
-@@ -155,8 +176,15 @@ int br_handle_frame_finish(struct net *n
+@@ -160,8 +181,15 @@ int br_handle_frame_finish(struct net *n
  		}
  		break;
  	case BR_PKT_UNICAST:
@@ -179,7 +179,7 @@
  	default:
  		break;
  	}
-@@ -171,12 +199,19 @@ int br_handle_frame_finish(struct net *n
+@@ -176,12 +204,19 @@ int br_handle_frame_finish(struct net *n
  			dst->used = now;
  		br_forward(dst->dst, skb, local_rcv, false);
  	} else {
@@ -198,7 +198,7 @@
 -
 +out1: /* QCA qca-mcs support */
  	if (local_rcv)
- 		return br_pass_frame_up(skb);
+ 		return br_pass_frame_up(skb, promisc);
  
 --- a/include/linux/mroute.h
 +++ b/include/linux/mroute.h
