@@ -1,0 +1,35 @@
+# Use "make defconfig" to expand this to a full .config
+# Target
+CONFIG_TARGET_ipq806x_generic_DEVICE_netgear_r7800=y
+CONFIG_TARGET_ipq806x_generic=y
+CONFIG_TARGET_ipq806x=y
+
+CONFIG_KERNEL_BUILD_USER="asvio"
+CONFIG_KERNEL_BUILD_DOMAIN="hotmail.com"
+
+# CONFIG_PACKAGE_ath10k-firmware-qca9984-ct is not set
+CONFIG_PACKAGE_ath10k-firmware-qca9984=y
+# CONFIG_PACKAGE_kmod-ath10k-ct is not set
+CONFIG_PACKAGE_kmod-ath10k=y
+CONFIG_ATH10K_LEDS=y
+CONFIG_ATH10K_THERMAL=y
+
+# NSS Drivers
+CONFIG_PACKAGE_kmod-nss-ifb=y
+CONFIG_PACKAGE_kmod-qca-nss-drv=y
+CONFIG_PACKAGE_kmod-qca-nss-ecm-standard=y
+CONFIG_PACKAGE_kmod-qca-nss-gmac=y
+CONFIG_PACKAGE_kmod-qca-nss-drv-qdisc=y
+CONFIG_PACKAGE_kmod-qca-nss-drv-pppoe=y
+CONFIG_PACKAGE_MAC80211_NSS_SUPPORT=y
+CONFIG_PACKAGE_kmod-qca-nss-drv-tunipip6=y
+CONFIG_PACKAGE_kmod-qca-nss-drv-l2tpv2=y
+CONFIG_PACKAGE_kmod-qca-nss-drv-pptp=y
+CONFIG_PACKAGE_kmod-qca-nss-crypto=y
+CONFIG_PACKAGE_kmod-qca-mcs=y
+CONFIG_PACKAGE_MAC80211_DEBUGFS=y
+
+# Luci
+CONFIG_PACKAGE_luci=y
+CONFIG_PACKAGE_luci-app-sqm=y
+
