@@ -530,7 +530,7 @@
 +};
 --- a/arch/arm/boot/dts/qcom-ipq8065-rt4230w-rev6.dts
 +++ b/arch/arm/boot/dts/qcom-ipq8065-rt4230w-rev6.dts
-@@ -311,10 +311,28 @@
+@@ -312,10 +312,28 @@
  			0x00054 0xc832c832  /* LED_CTRL_1 */
  			>;
  	};
@@ -559,7 +559,7 @@
  	phy-mode = "rgmii";
  	qcom,id = <0>;
  
-@@ -332,6 +350,16 @@
+@@ -333,6 +351,16 @@
  
  &gmac1 {
  	status = "okay";
