@@ -23,10 +23,10 @@ PKG_CONFIG_DEPENDS += \
 sanitize = $(call tolower,$(subst _,-,$(subst $(space),-,$(1))))
 
 VERSION_NUMBER:=$(call qstrip,$(CONFIG_VERSION_NUMBER))
-VERSION_NUMBER:=$(if $(VERSION_NUMBER),$(VERSION_NUMBER),23.05.4)
+VERSION_NUMBER:=$(if $(VERSION_NUMBER),$(VERSION_NUMBER),23.05.4-NSS)
 
 VERSION_CODE:=$(call qstrip,$(CONFIG_VERSION_CODE))
-VERSION_CODE:=$(if $(VERSION_CODE),$(VERSION_CODE),r24012-d8dd03c46f)
+VERSION_CODE:=$(if $(VERSION_CODE),$(VERSION_CODE),r24012+37-d8dd03c46f-c71bb1f99a)
 
 VERSION_REPO:=$(call qstrip,$(CONFIG_VERSION_REPO))
 VERSION_REPO:=$(if $(VERSION_REPO),$(VERSION_REPO),https://downloads.openwrt.org/releases/23.05.4)
