@@ -12,11 +12,9 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  drivers/net/wireless/ath/ath10k/mac.c | 6 ++++--
  1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/wireless/ath/ath10k/mac.c b/drivers/net/wireless/ath/ath10k/mac.c
-index 9c4bf2fdbc0f..8d362ba351e6 100644
 --- a/drivers/net/wireless/ath/ath10k/mac.c
 +++ b/drivers/net/wireless/ath/ath10k/mac.c
-@@ -2749,9 +2749,9 @@ static void ath10k_peer_assoc_h_phymode(struct ath10k *ar,
+@@ -2749,9 +2749,9 @@ static void ath10k_peer_assoc_h_phymode(
  		if (sta->deflink.vht_cap.vht_supported &&
  		    !ath10k_peer_assoc_h_vht_masked(vht_mcs_mask)) {
  			if (sta->deflink.bandwidth == IEEE80211_STA_RX_BW_40)
@@ -28,7 +26,7 @@ index 9c4bf2fdbc0f..8d362ba351e6 100644
  		} else if (sta->deflink.ht_cap.ht_supported &&
  			   !ath10k_peer_assoc_h_ht_masked(ht_mcs_mask)) {
  			if (sta->deflink.bandwidth == IEEE80211_STA_RX_BW_40)
-@@ -4998,6 +4998,8 @@ static void ath10k_mac_setup_ht_vht_cap(struct ath10k *ar)
+@@ -4998,6 +4998,8 @@ static void ath10k_mac_setup_ht_vht_cap(
  	if (ar->phy_capability & WHAL_WLAN_11G_CAPABILITY) {
  		band = &ar->mac.sbands[NL80211_BAND_2GHZ];
  		band->ht_cap = ht_cap;
@@ -37,6 +35,3 @@ index 9c4bf2fdbc0f..8d362ba351e6 100644
  	}
  	if (ar->phy_capability & WHAL_WLAN_11A_CAPABILITY) {
  		band = &ar->mac.sbands[NL80211_BAND_5GHZ];
--- 
-2.40.1
-
