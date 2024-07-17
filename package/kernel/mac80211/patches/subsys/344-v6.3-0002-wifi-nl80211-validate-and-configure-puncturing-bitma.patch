@@ -28,7 +28,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 
 --- a/include/net/cfg80211.h
 +++ b/include/net/cfg80211.h
-@@ -1333,6 +1333,9 @@ struct cfg80211_unsol_bcast_probe_resp {
+@@ -1335,6 +1335,9 @@ struct cfg80211_unsol_bcast_probe_resp {
   * @fils_discovery: FILS discovery transmission parameters
   * @unsol_bcast_probe_resp: Unsolicited broadcast probe response parameters
   * @mbssid_config: AP settings for multiple bssid
@@ -38,7 +38,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
   */
  struct cfg80211_ap_settings {
  	struct cfg80211_chan_def chandef;
-@@ -1367,6 +1370,7 @@ struct cfg80211_ap_settings {
+@@ -1369,6 +1372,7 @@ struct cfg80211_ap_settings {
  	struct cfg80211_fils_discovery fils_discovery;
  	struct cfg80211_unsol_bcast_probe_resp unsol_bcast_probe_resp;
  	struct cfg80211_mbssid_config mbssid_config;
@@ -46,7 +46,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  };
  
  /**
-@@ -1384,6 +1388,9 @@ struct cfg80211_ap_settings {
+@@ -1386,6 +1390,9 @@ struct cfg80211_ap_settings {
   * @radar_required: whether radar detection is required on the new channel
   * @block_tx: whether transmissions should be blocked while changing
   * @count: number of beacons until switch
@@ -56,7 +56,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
   */
  struct cfg80211_csa_settings {
  	struct cfg80211_chan_def chandef;
-@@ -1396,6 +1403,7 @@ struct cfg80211_csa_settings {
+@@ -1398,6 +1405,7 @@ struct cfg80211_csa_settings {
  	bool radar_required;
  	bool block_tx;
  	u8 count;

@@ -290,7 +290,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  				data.ap_mld_addr = assoc_data->ap_addr;
  
  			cfg80211_assoc_failure(sdata->dev, &data);
-@@ -4979,7 +4980,7 @@ static bool ieee80211_assoc_success(stru
+@@ -4983,7 +4984,7 @@ static bool ieee80211_assoc_success(stru
  	if (WARN_ON(!sta))
  		goto out_err;
  
@@ -299,7 +299,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  		u16 valid_links = 0;
  
  		for (link_id = 0; link_id < IEEE80211_MLD_MAX_NUM_LINKS; link_id++) {
-@@ -5008,7 +5009,7 @@ static bool ieee80211_assoc_success(stru
+@@ -5012,7 +5013,7 @@ static bool ieee80211_assoc_success(stru
  		if (WARN_ON(!link))
  			goto out_err;
  
@@ -308,7 +308,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  			link_info(link,
  				  "local address %pM, AP link address %pM\n",
  				  link->conf->addr,
-@@ -5240,7 +5241,7 @@ static void ieee80211_rx_mgmt_assoc_resp
+@@ -5244,7 +5245,7 @@ static void ieee80211_rx_mgmt_assoc_resp
  			ifmgd->broken_ap = true;
  		}
  
@@ -317,7 +317,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  			if (!elems->multi_link) {
  				sdata_info(sdata,
  					   "MLO association with %pM but no multi-link element in response!\n",
-@@ -5304,7 +5305,7 @@ static void ieee80211_rx_mgmt_assoc_resp
+@@ -5308,7 +5309,7 @@ static void ieee80211_rx_mgmt_assoc_resp
  				resp.uapsd_queues |= ieee80211_ac_to_qos_mask[ac];
  	}
  
@@ -326,7 +326,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  		ether_addr_copy(ap_mld_addr, sdata->vif.cfg.ap_addr);
  		resp.ap_mld_addr = ap_mld_addr;
  	}
-@@ -5629,7 +5630,7 @@ static void ieee80211_rx_mgmt_beacon(str
+@@ -5633,7 +5634,7 @@ static void ieee80211_rx_mgmt_beacon(str
  	rcu_read_unlock();
  
  	if (ifmgd->assoc_data && ifmgd->assoc_data->need_beacon &&
@@ -335,7 +335,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  	    ieee80211_rx_our_beacon(bssid, ifmgd->assoc_data->link[0].bss)) {
  		parse_params.bss = ifmgd->assoc_data->link[0].bss;
  		elems = ieee802_11_parse_elems_full(&parse_params);
-@@ -6319,7 +6320,7 @@ static void ieee80211_sta_bcn_mon_timer(
+@@ -6323,7 +6324,7 @@ static void ieee80211_sta_bcn_mon_timer(
  	struct ieee80211_sub_if_data *sdata =
  		from_timer(sdata, t, u.mgd.bcn_mon_timer);
  
@@ -344,7 +344,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  		return;
  
  	if (sdata->vif.bss_conf.csa_active &&
-@@ -6343,7 +6344,7 @@ static void ieee80211_sta_conn_mon_timer
+@@ -6347,7 +6348,7 @@ static void ieee80211_sta_conn_mon_timer
  	struct sta_info *sta;
  	unsigned long timeout;
  
@@ -353,7 +353,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  		return;
  
  	if (sdata->vif.bss_conf.csa_active &&
-@@ -6898,7 +6899,7 @@ int ieee80211_mgd_auth(struct ieee80211_
+@@ -6902,7 +6903,7 @@ int ieee80211_mgd_auth(struct ieee80211_
  	return 0;
  
   err_clear:
@@ -476,7 +476,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  			rcu_dereference(sdata->vif.bss_conf.chanctx_conf);
 --- a/net/mac80211/util.c
 +++ b/net/mac80211/util.c
-@@ -1701,7 +1701,7 @@ void ieee80211_send_auth(struct ieee8021
+@@ -1691,7 +1691,7 @@ void ieee80211_send_auth(struct ieee8021
  	struct ieee80211_local *local = sdata->local;
  	struct sk_buff *skb;
  	struct ieee80211_mgmt *mgmt;
@@ -485,7 +485,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  	struct {
  		u8 id;
  		u8 len;
-@@ -2542,7 +2542,7 @@ int ieee80211_reconfig(struct ieee80211_
+@@ -2536,7 +2536,7 @@ int ieee80211_reconfig(struct ieee80211_
  			continue;
  
  		sdata_lock(sdata);
@@ -494,7 +494,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  			struct ieee80211_bss_conf *old[IEEE80211_MLD_MAX_NUM_LINKS] = {
  				[0] = &sdata->vif.bss_conf,
  			};
-@@ -2562,7 +2562,7 @@ int ieee80211_reconfig(struct ieee80211_
+@@ -2556,7 +2556,7 @@ int ieee80211_reconfig(struct ieee80211_
  		for (link_id = 0;
  		     link_id < ARRAY_SIZE(sdata->vif.link_conf);
  		     link_id++) {
@@ -503,7 +503,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  			    !(sdata->vif.active_links & BIT(link_id)))
  				continue;
  
-@@ -2594,12 +2594,12 @@ int ieee80211_reconfig(struct ieee80211_
+@@ -2588,12 +2588,12 @@ int ieee80211_reconfig(struct ieee80211_
  		if (sdata->vif.bss_conf.mu_mimo_owner)
  			changed |= BSS_CHANGED_MU_GROUPS;
  
@@ -518,7 +518,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  				changed |= BSS_CHANGED_ASSOC |
  					   BSS_CHANGED_ARP_FILTER |
  					   BSS_CHANGED_PS;
-@@ -2637,7 +2637,7 @@ int ieee80211_reconfig(struct ieee80211_
+@@ -2631,7 +2631,7 @@ int ieee80211_reconfig(struct ieee80211_
  		case NL80211_IFTYPE_AP:
  			changed |= BSS_CHANGED_P2P_PS;
  
@@ -527,7 +527,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  				ieee80211_vif_cfg_change_notify(sdata,
  								BSS_CHANGED_SSID);
  			else
-@@ -2651,7 +2651,7 @@ int ieee80211_reconfig(struct ieee80211_
+@@ -2645,7 +2645,7 @@ int ieee80211_reconfig(struct ieee80211_
  			if (sdata->vif.type == NL80211_IFTYPE_AP) {
  				changed |= BSS_CHANGED_AP_PROBE_RESP;
  

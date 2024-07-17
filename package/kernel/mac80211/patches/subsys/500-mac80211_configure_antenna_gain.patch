@@ -1,6 +1,6 @@
 --- a/include/net/cfg80211.h
 +++ b/include/net/cfg80211.h
-@@ -4095,6 +4095,7 @@ struct mgmt_frame_regs {
+@@ -4097,6 +4097,7 @@ struct mgmt_frame_regs {
   *	(as advertised by the nl80211 feature flag.)
   * @get_tx_power: store the current TX power into the dbm variable;
   *	return 0 if successful
@@ -8,7 +8,7 @@
   *
   * @rfkill_poll: polls the hw rfkill line, use cfg80211 reporting
   *	functions to adjust rfkill hw state
-@@ -4445,6 +4446,7 @@ struct cfg80211_ops {
+@@ -4447,6 +4448,7 @@ struct cfg80211_ops {
  				enum nl80211_tx_power_setting type, int mbm);
  	int	(*get_tx_power)(struct wiphy *wiphy, struct wireless_dev *wdev,
  				int *dbm);

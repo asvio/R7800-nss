@@ -19,7 +19,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/include/net/cfg80211.h
 +++ b/include/net/cfg80211.h
-@@ -6310,6 +6310,19 @@ static inline int ieee80211_data_to_8023
+@@ -6312,6 +6312,19 @@ static inline int ieee80211_data_to_8023
  }
  
  /**

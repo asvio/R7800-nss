@@ -48,7 +48,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  			struct rx_packet_hdr *rx_hdr;
 --- a/include/net/cfg80211.h
 +++ b/include/net/cfg80211.h
-@@ -6324,11 +6324,36 @@ static inline int ieee80211_data_to_8023
+@@ -6326,11 +6326,36 @@ static inline int ieee80211_data_to_8023
   * @extra_headroom: The hardware extra headroom for SKBs in the @list.
   * @check_da: DA to check in the inner ethernet header, or NULL
   * @check_sa: SA to check in the inner ethernet header, or NULL

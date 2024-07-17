@@ -13,7 +13,7 @@ Signed-off-by: Rafał Miłecki <rafal@milecki.pl>
 
 --- a/include/net/cfg80211.h
 +++ b/include/net/cfg80211.h
-@@ -555,6 +555,33 @@ struct ieee80211_supported_band {
+@@ -557,6 +557,33 @@ struct ieee80211_supported_band {
  };
  
  /**
