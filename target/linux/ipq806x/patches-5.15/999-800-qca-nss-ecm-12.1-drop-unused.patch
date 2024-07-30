@@ -39,7 +39,7 @@
  {
 --- a/drivers/net/ppp/ppp_generic.c
 +++ b/drivers/net/ppp/ppp_generic.c
-@@ -3800,34 +3800,6 @@ int ppp_channel_get_proto_version(struct
+@@ -3815,34 +3815,6 @@ int ppp_channel_get_proto_version(struct
  }
  EXPORT_SYMBOL(ppp_channel_get_proto_version);
  

@@ -22,7 +22,7 @@ Subject: [PATCH] Update 602-qca-add-pppoe-offload-support.patch for kernel
  
  #include <linux/nsproxy.h>
  #include <net/net_namespace.h>
-@@ -253,6 +254,25 @@ struct ppp_net {
+@@ -254,6 +255,25 @@ struct ppp_net {
  #define seq_before(a, b)	((s32)((a) - (b)) < 0)
  #define seq_after(a, b)		((s32)((a) - (b)) > 0)
  
@@ -48,7 +48,7 @@ Subject: [PATCH] Update 602-qca-add-pppoe-offload-support.patch for kernel
  /* Prototypes. */
  static int ppp_unattached_ioctl(struct net *net, struct ppp_file *pf,
  			struct file *file, unsigned int cmd, unsigned long arg);
-@@ -3452,7 +3472,10 @@ ppp_connect_channel(struct channel *pch,
+@@ -3467,7 +3487,10 @@ ppp_connect_channel(struct channel *pch,
  	struct ppp_net *pn;
  	int ret = -ENXIO;
  	int hdrlen;
@@ -59,7 +59,7 @@ Subject: [PATCH] Update 602-qca-add-pppoe-offload-support.patch for kernel
  	pn = ppp_pernet(pch->chan_net);
  
  	mutex_lock(&pn->all_ppp_mutex);
-@@ -3484,13 +3507,40 @@ ppp_connect_channel(struct channel *pch,
+@@ -3499,13 +3522,40 @@ ppp_connect_channel(struct channel *pch,
  	++ppp->n_channels;
  	pch->ppp = ppp;
  	refcount_inc(&ppp->file.refcnt);
@@ -101,7 +101,7 @@ Subject: [PATCH] Update 602-qca-add-pppoe-offload-support.patch for kernel
  	return ret;
  }
  
-@@ -3508,6 +3558,13 @@ ppp_disconnect_channel(struct channel *p
+@@ -3523,6 +3573,13 @@ ppp_disconnect_channel(struct channel *p
  	pch->ppp = NULL;
  	write_unlock_bh(&pch->upl);
  	if (ppp) {
@@ -115,7 +115,7 @@ Subject: [PATCH] Update 602-qca-add-pppoe-offload-support.patch for kernel
  		/* remove it from the ppp unit's list */
  		ppp_lock(ppp);
  		list_del(&pch->clist);
-@@ -3587,6 +3644,222 @@ static void *unit_find(struct idr *p, in
+@@ -3602,6 +3659,222 @@ static void *unit_find(struct idr *p, in
  	return idr_find(p, n);
  }
  
@@ -338,7 +338,7 @@ Subject: [PATCH] Update 602-qca-add-pppoe-offload-support.patch for kernel
  /* Module/initialization stuff */
  
  module_init(ppp_init);
-@@ -3603,6 +3876,7 @@ EXPORT_SYMBOL(ppp_input_error);
+@@ -3618,6 +3891,7 @@ EXPORT_SYMBOL(ppp_input_error);
  EXPORT_SYMBOL(ppp_output_wakeup);
  EXPORT_SYMBOL(ppp_register_compressor);
  EXPORT_SYMBOL(ppp_unregister_compressor);
