@@ -10,7 +10,7 @@
  						     const char *addr,
 --- a/net/bridge/br_fdb.c
 +++ b/net/bridge/br_fdb.c
-@@ -1460,26 +1460,6 @@ void br_fdb_clear_offload(const struct n
+@@ -1458,26 +1458,6 @@ void br_fdb_clear_offload(const struct n
  EXPORT_SYMBOL_GPL(br_fdb_clear_offload);
  
  /* QCA NSS ECM support - Start */

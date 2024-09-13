@@ -155,7 +155,7 @@
  void fib_del_ifaddr(struct in_ifaddr *, struct in_ifaddr *);
 --- a/net/8021q/vlan_core.c
 +++ b/net/8021q/vlan_core.c
-@@ -563,4 +563,12 @@ static int __init vlan_offload_init(void
+@@ -558,4 +558,12 @@ static int __init vlan_offload_init(void
  	return 0;
  }
  
@@ -270,7 +270,7 @@
  	if (swdev_notify)
  		br_switchdev_fdb_notify(br, fdb, type);
  
-@@ -1377,3 +1439,62 @@ void br_fdb_clear_offload(const struct n
+@@ -1375,3 +1437,62 @@ void br_fdb_clear_offload(const struct n
  	spin_unlock_bh(&p->br->hash_lock);
  }
  EXPORT_SYMBOL_GPL(br_fdb_clear_offload);
@@ -602,7 +602,7 @@
  
  static void
  ipv6_link_dev_addr(struct inet6_dev *idev, struct inet6_ifaddr *ifp)
-@@ -2065,6 +2066,7 @@ struct inet6_ifaddr *ipv6_get_ifaddr(str
+@@ -2066,6 +2067,7 @@ struct inet6_ifaddr *ipv6_get_ifaddr(str
  
  	return result;
  }
@@ -612,7 +612,7 @@
  
 --- a/net/ipv6/ndisc.c
 +++ b/net/ipv6/ndisc.c
-@@ -650,6 +650,7 @@ void ndisc_send_ns(struct net_device *de
+@@ -652,6 +652,7 @@ void ndisc_send_ns(struct net_device *de
  
  	ndisc_send_skb(skb, daddr, saddr);
  }
