@@ -1,6 +1,6 @@
 --- a/Makefile
 +++ b/Makefile
-@@ -69,9 +69,9 @@ WFLAGS += -Wmissing-declarations -Wold-s
+@@ -69,7 +69,7 @@ WFLAGS += -Wmissing-declarations -Wold-s
  CFLAGS := $(WFLAGS) $(CCOPTS) -I../include -I../include/uapi $(DEFINES) $(CFLAGS)
  YACCFLAGS = -d -t -v
  
@@ -8,7 +8,7 @@
 +SUBDIRS=lib ip tc bridge misc genl
  ifeq ($(HAVE_MNL),y)
 -SUBDIRS += tipc devlink rdma dcb vdpa
-+SUBDIRS += devlink rdma
++SUBDIRS += tipc devlink rdma
  endif
  
  LIBNETLINK=../lib/libutil.a ../lib/libnetlink.a
