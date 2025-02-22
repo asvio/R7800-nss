@@ -1,0 +1,212 @@
+From 8cfad2eeed8d410f3f9943c535fad002b0b74073 Mon Sep 17 00:00:00 2001
+From: Amitesh Anand <quic_amitesh@quicinc.com>
+Date: Sat, 23 Dec 2023 23:29:45 +0530
+Subject: [PATCH] [qca-nss-ecm] Fixes for kernel 6.6
+
+1) Fix mscs classifier to avoid setting bool values to enum
+variables.
+
+2) Change sysctl registration from register_sysctl_table() to
+register_sysctl and avoid deprecated method.
+
+3) Kernel v6.6 removed dev->miniq_ingress. Use dev->tcx_ingress
+field selectively for v6.6.
+
+Change-Id: I9250a3082811df1917fdfa1fb1e398125871b811
+Signed-off-by: Amitesh Anand <quic_amitesh@quicinc.com>
+---
+ ecm_classifier_mscs.c            | 14 +++++++------
+ ecm_interface.c                  | 22 ++------------------
+ frontends/ecm_front_end_common.c | 35 ++++++++++++++------------------
+ 3 files changed, 25 insertions(+), 46 deletions(-)
+
+--- a/ecm_classifier_mscs.c
++++ b/ecm_classifier_mscs.c
+@@ -1,7 +1,7 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2020-2021 The Linux Foundation. All rights reserved.
+- * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+@@ -416,7 +416,7 @@ static void ecm_classifier_mscs_process(
+ 	int protocol;
+ 	uint32_t became_relevant = 0;
+ 	ecm_classifier_mscs_process_callback_t cb = NULL;
+-	ecm_classifier_mscs_result_t result = 0;
++	bool scs_result = false;
+ 	uint8_t smac[ETH_ALEN];
+ 	uint8_t dmac[ETH_ALEN];
+ 	bool mscs_rule_match = false;
+@@ -538,7 +538,8 @@ static void ecm_classifier_mscs_process(
+ 			/*
+ 			 * Set result true for Multi AP mode.
+ 			 */
+-			result = true;
++			scs_result = true;
++
+ 			/*
+ 			 * Invoke the WiFi datapath callback registered with MSCS client to check
+ 			 * if SCS priority is valid for WiFi peer corresponding to
+@@ -555,7 +556,7 @@ static void ecm_classifier_mscs_process(
+ 				rule_match_info.dst_mac = dmac;
+ 				rule_match_info.src_dev = src_dev;
+ 				rule_match_info.dst_dev = dest_dev;
+-				result = scs_cb(&rule_match_info);
++				scs_result = scs_cb(&rule_match_info);
+ 			}
+ 		}
+ 
+@@ -563,7 +564,7 @@ static void ecm_classifier_mscs_process(
+ 		 * Check the result of the callback. If we have a valid priority and peer is SCS
+ 		 * capable, we set the priority (we do not check MSCS as SCS have higher precedence).
+ 		 */
+-		if (result) {
++		if (scs_result) {
+ 			/*
+ 			 * Update skb priority.
+ 			 */
+@@ -606,13 +607,14 @@ static void ecm_classifier_mscs_process(
+ 	 * Check MSCS classifer.
+ 	 */
+ 	if (ecm_classifier_mscs_enabled) {
+-		result =  false;
+ 		/*
+ 		 * Check if MSCS multi AP mode is enabled or not -
+ 		 * If yes, we need to query SPM database for rule match.
+ 		 * Else legacy MSCS should work for single AP mode.
+ 		 */
+ 		if (!ecm_classifier_mscs_scs_multi_ap_enabled) {
++			ecm_classifier_mscs_result_t result;
++
+ 			/*
+ 			 * Get the WiFi datapath callback registered with MSCS client to check
+ 			 * if MSCS QoS tag is valid for WiFi peer corresponding to
+--- a/ecm_interface.c
++++ b/ecm_interface.c
+@@ -1,7 +1,7 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2014-2021 The Linux Foundation. All rights reserved.
+- * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
++ * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+@@ -8306,24 +8306,6 @@ static struct ctl_table ecm_interface_ta
+ 	{ }
+ };
+ 
+-static struct ctl_table ecm_interface_root_dir[] = {
+-	{
+-		.procname		= "ecm",
+-		.mode			= 0555,
+-		.child			= ecm_interface_table,
+-	},
+-	{ }
+-};
+-
+-static struct ctl_table ecm_interface_root[] = {
+-	{
+-		.procname		= "net",
+-		.mode			= 0555,
+-		.child			= ecm_interface_root_dir,
+-	},
+-	{ }
+-};
+-
+ #ifdef ECM_INTERFACE_IPSEC_GLUE_LAYER_SUPPORT_ENABLE
+ /*
+  * ecm_interface_ipsec_register_callbacks()
+@@ -8820,7 +8802,7 @@ int ecm_interface_init(void)
+ 	/*
+ 	 * Register sysctl table.
+ 	 */
+-	ecm_interface_ctl_table_header = register_sysctl_table(ecm_interface_root);
++	ecm_interface_ctl_table_header = register_sysctl("net/ecm", ecm_interface_table);
+ 
+ 	result = register_netdevice_notifier(&ecm_interface_netdev_notifier);
+ 	if (result != 0) {
+--- a/frontends/ecm_front_end_common.c
++++ b/frontends/ecm_front_end_common.c
+@@ -1,7 +1,7 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2015, 2016, 2020-2021, The Linux Foundation. All rights reserved.
+- * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
++ * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+@@ -35,6 +35,9 @@
+ #include <net/addrconf.h>
+ #include <net/gre.h>
+ #include <net/xfrm.h>
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 6, 0))
++#include <net/tcx.h>
++#endif
+ #include <linux/hashtable.h>
+ #include <net/sch_generic.h>
+ #ifdef ECM_FRONT_END_PPE_ENABLE
+@@ -1157,24 +1160,6 @@ static struct ctl_table ecm_front_end_sy
+ 	{}
+ };
+ 
+-static struct ctl_table ecm_front_end_common_root[] = {
+-	{
+-		.procname	= "ecm",
+-		.mode		= 0555,
+-		.child		= ecm_front_end_sysctl_tbl,
+-	},
+-	{ }
+-};
+-
+-static struct ctl_table ecm_front_end_common_root_dir[] = {
+-	{
+-		.procname		= "net",
+-		.mode			= 0555,
+-		.child			= ecm_front_end_common_root,
+-	},
+-	{ }
+-};
+-
+ /*
+  * ecm_front_end_common_sysctl_register()
+  *	Function to register sysctl node during front end init
+@@ -1184,7 +1169,7 @@ void ecm_front_end_common_sysctl_registe
+ 	/*
+ 	 * Register sysctl table.
+ 	 */
+-	ecm_front_end_ctl_tbl_hdr = register_sysctl_table(ecm_front_end_common_root_dir);
++	ecm_front_end_ctl_tbl_hdr = register_sysctl("net/ecm", ecm_front_end_sysctl_tbl);
+ #ifdef ECM_FRONT_END_SFE_ENABLE
+ 	if (ecm_front_end_ctl_tbl_hdr) {
+ 		ecm_sfe_sysctl_tbl_init();
+@@ -1704,7 +1689,12 @@ bool ecm_front_end_common_intf_ingress_q
+ 	}
+ 
+ 	BUG_ON(!rcu_read_lock_bh_held());
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0))
+ 	miniq = rcu_dereference_bh(dev->miniq_ingress);
++#else
++	struct bpf_mprog_entry *entry = rcu_dereference_bh(dev->tcx_ingress);
++	miniq = entry ? tcx_entry(entry)->miniq : NULL;
++#endif
+ 	if (miniq) {
+ 		DEBUG_INFO("Ingress Qdisc is present for device[%s]\n", dev->name);
+ 		dev_put(dev);
+@@ -1759,7 +1749,12 @@ bool ecm_front_end_common_intf_qdisc_che
+ 	}
+ 
+ #if defined(CONFIG_NET_CLS_ACT) && defined(CONFIG_NET_EGRESS)
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0))
+ 	miniq = rcu_dereference_bh(dev->miniq_egress);
++#else
++	struct bpf_mprog_entry *entry = rcu_dereference_bh(dev->tcx_egress);
++	miniq = entry ? tcx_entry(entry)->miniq : NULL;
++#endif
+ 	if (miniq) {
+ 		DEBUG_INFO("Egress needed\n");
+ 		dev_put(dev);
