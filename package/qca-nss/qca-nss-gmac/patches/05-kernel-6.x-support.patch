@@ -1,0 +1,108 @@
+--- a/ipq806x/include/msm_nss_gmac.h
++++ b/ipq806x/include/msm_nss_gmac.h
+@@ -19,6 +19,7 @@
+ #ifndef __MSM_NSS_GMAC_H
+ #define __MSM_NSS_GMAC_H
+ 
++#include <linux/version.h>
+ #include <linux/phy.h>
+ 
+ #include <msm_nss_macsec.h>
+@@ -318,7 +319,11 @@ struct msm_nss_gmac_platform_data {
+ 	uint32_t poll_required;		/* [0/1] Link status poll? */
+ 	uint32_t rgmii_delay;
+ 	phy_interface_t phy_mii_type;
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	const uint8_t  mac_addr[6];
++#else
+ 	uint8_t  mac_addr[6];
++#endif
+ 	int32_t forced_speed;		/* Forced speed. Values used from
+ 					   ethtool.h. 0 = Speed not forced */
+ 	int32_t forced_duplex;		/* Forced duplex. Values used from
+--- a/ipq806x/nss_gmac_ctrl.c
++++ b/ipq806x/nss_gmac_ctrl.c
+@@ -379,10 +379,20 @@ static int32_t nss_gmac_set_mac_address(
+ 	if (!is_valid_ether_addr(addr->sa_data))
+ 		return -EADDRNOTAVAIL;
+ 
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	nss_gmac_set_mac_addr(gmacdev, gmac_addr0_high, gmac_addr0_low,
++			      (uint8_t *)addr->sa_data);
++#else
+ 	nss_gmac_set_mac_addr(gmacdev, gmac_addr0_high, gmac_addr0_low,
+ 			      addr->sa_data);
++#endif
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	nss_gmac_get_mac_addr(gmacdev, gmac_addr0_high, gmac_addr0_low,
++			     (uint8_t *)netdev->dev_addr);
++#else
+ 	nss_gmac_get_mac_addr(gmacdev, gmac_addr0_high, gmac_addr0_low,
+ 			      netdev->dev_addr);
++#endif
+ 
+ 	return 0;
+ }
+@@ -1029,7 +1039,11 @@ static int32_t nss_gmac_of_get_pdata(str
+ 		return -EFAULT;
+ 	}
+ 
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	of_get_mac_address(np, (uint8_t *)gmaccfg->mac_addr);
++#else
+ 	of_get_mac_address(np, gmaccfg->mac_addr);
++#endif
+ 
+ 	if (of_address_to_resource(np, 0, &memres_devtree) != 0)
+ 		return -EFAULT;
+@@ -1349,9 +1363,18 @@ static int32_t nss_gmac_probe(struct pla
+ 	 * This just fill in some default MAC address
+ 	 */
+ 	if (is_valid_ether_addr(gmaccfg->mac_addr)) {
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		//__dev_addr_set(netdev, &gmaccfg->mac_addr, ETH_ALEN);
++		eth_hw_addr_set(netdev, (uint8_t *)gmaccfg->mac_addr);
++#else
+ 		memcpy(netdev->dev_addr, &gmaccfg->mac_addr, ETH_ALEN);
++#endif
+ 	} else {
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		eth_random_addr((uint8_t *)netdev->dev_addr);
++#else
+ 		random_ether_addr(netdev->dev_addr);
++#endif
+ 		pr_info("GMAC%d(%p) Invalid MAC@ - using %02x:%02x:%02x:%02x:%02x:%02x\n",
+ 			gmacdev->macid, gmacdev,
+ 			*netdev->dev_addr, *netdev->dev_addr+1,
+--- a/ipq806x/nss_gmac_dev.c
++++ b/ipq806x/nss_gmac_dev.c
+@@ -1166,8 +1166,13 @@ void nss_gmac_mac_init(struct nss_gmac_d
+ 	nss_gmac_back_off_limit(gmacdev, gmac_backoff_limit0);
+ 	nss_gmac_deferral_check_disable(gmacdev);
+ 
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	nss_gmac_set_mac_addr(gmacdev, gmac_addr0_high,
++			      gmac_addr0_low, (uint8_t *)gmacdev->netdev->dev_addr);
++#else
+ 	nss_gmac_set_mac_addr(gmacdev, gmac_addr0_high,
+ 			      gmac_addr0_low, gmacdev->netdev->dev_addr);
++#endif
+ 
+ 	/*Frame Filter Configuration */
+ 	nss_gmac_frame_filter_enable(gmacdev);
+--- a/ipq806x/nss_gmac_tx_rx_offload.c
++++ b/ipq806x/nss_gmac_tx_rx_offload.c
+@@ -945,8 +945,13 @@ int nss_gmac_open(struct net_device *net
+ 		netdev_dbg(netdev, "%s: offload is not enabled, bring up gmac with slowpath\n",
+ 								__func__);
+ 
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(netdev, &gmacdev->napi, nss_gmac_poll,
++							NSS_GMAC_NAPI_BUDGET);
++#else
+ 		netif_napi_add(netdev, &gmacdev->napi, nss_gmac_poll,
+ 							NSS_GMAC_NAPI_BUDGET);
++#endif
+ 		/* Initial the RX/TX ring */
+ 		dma_set_coherent_mask(dev, 0xffffffff);
+ 		nss_gmac_setup_rx_desc_queue(gmacdev, dev,
