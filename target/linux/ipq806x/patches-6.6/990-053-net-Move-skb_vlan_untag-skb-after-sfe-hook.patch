@@ -1,0 +1,39 @@
+From af7d2a61b63bdb996746d38288842624e662a447 Mon Sep 17 00:00:00 2001
+From: Ratheesh Kannoth <quic_rkannoth@quicinc.com>
+Date: Fri, 17 Dec 2021 19:17:58 +0530
+Subject: [PATCH 261/281] net: Move skb_vlan_untag(skb) after sfe hook
+
+Change-Id: I5a019761f363dd81bf5e52eea606b9076f22e6af
+Signed-off-by: Ratheesh Kannoth <quic_rkannoth@quicinc.com>
+---
+ net/core/dev.c | 19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
+
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -5455,12 +5455,6 @@ another_round:
+ 		}
+ 	}
+ 
+-	if (eth_type_vlan(skb->protocol)) {
+-		skb = skb_vlan_untag(skb);
+-		if (unlikely(!skb))
+-			goto out;
+-	}
+-
+ 	fast_recv = rcu_dereference(athrs_fast_nat_recv);
+ 	if (fast_recv) {
+ 		if (fast_recv(skb)) {
+@@ -5469,6 +5463,12 @@ another_round:
+ 		}
+ 	}
+ 
++	if (eth_type_vlan(skb->protocol)) {
++		skb = skb_vlan_untag(skb);
++		if (unlikely(!skb))
++			goto out;
++	}
++
+ 	if (skb_skip_tc_classify(skb))
+ 		goto skip_classify;
+ 
