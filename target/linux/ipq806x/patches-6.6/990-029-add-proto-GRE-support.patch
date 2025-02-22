@@ -1,0 +1,39 @@
+--- a/include/linux/netfilter/nf_conntrack_proto_gre.h
++++ b/include/linux/netfilter/nf_conntrack_proto_gre.h
+@@ -30,4 +30,36 @@ void nf_ct_gre_keymap_destroy(struct nf_
+ 
+ bool gre_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
+ 		      struct net *net, struct nf_conntrack_tuple *tuple);
++
++
++/* GRE is a mess: Four different standards */
++struct gre_hdr {
++#if defined(__LITTLE_ENDIAN_BITFIELD)
++        __u16   rec:3,
++                srr:1,
++                seq:1,
++                key:1,
++                routing:1,
++                csum:1,
++                version:3,
++                reserved:4,
++                ack:1;
++#elif defined(__BIG_ENDIAN_BITFIELD)
++        __u16   csum:1,
++                routing:1,
++                key:1,
++                seq:1,
++                srr:1,
++                rec:3,
++                ack:1,
++                reserved:4,
++                version:3;
++#else
++#error "Adjust your <asm/byteorder.h> defines"
++#endif
++        __be16  protocol;
++};
++
++
++
+ #endif /* _CONNTRACK_PROTO_GRE_H */
