@@ -1,0 +1,335 @@
+From 12cdc396ed57835c2056f9d524e3661745ac7d57 Mon Sep 17 00:00:00 2001
+From: Parikshit Gune <quic_pgune@quicinc.com>
+Date: Fri, 28 Jul 2023 11:04:45 +0530
+Subject: [PATCH] [qca-nss-ecm] ECM to wlan driver callback signature changes.
+
+1. Signature change to pack the information into structures instead of
+individual fields for EMESH, SCS, MSCS wlan callbacks.
+2. Add src and dest net devices in the EMESH param sync callback.
+
+Change-Id: Iafbde3f0bbe073a8720ab86371c344d4941158ec
+Signed-off-by: Parikshit Gune <quic_pgune@quicinc.com>
+---
+ ecm_classifier_emesh.c                   | 70 ++++++++++++++++++++----
+ ecm_classifier_mscs.c                    | 11 +++-
+ ecm_wifi_plugins/ecm_wifi_plugin_emesh.c | 23 +++++++-
+ ecm_wifi_plugins/ecm_wifi_plugin_mscs.c  | 33 ++++++++++-
+ exports/ecm_classifier_emesh_public.h    | 21 +++++--
+ exports/ecm_classifier_mscs_public.h     | 26 ++++++++-
+ 6 files changed, 161 insertions(+), 23 deletions(-)
+
+--- a/ecm_classifier_emesh.c
++++ b/ecm_classifier_emesh.c
+@@ -1747,7 +1747,10 @@ void ecm_classifier_emesh_sawf_params_sy
+ void ecm_classifier_emesh_sawf_update_latency_param_on_conn_decel(struct ecm_classifier_instance *aci, struct ecm_classifier_rule_sync *sync)
+ {
+ 	struct ecm_classifier_emesh_sawf_instance *cemi;
++	struct ecm_classifer_emesh_sawf_mesh_latency_params mesh_params = {0};
+ 	struct ecm_db_connection_instance *ci;
++	struct net_device *src_dev = NULL;
++	struct net_device *dest_dev = NULL;
+ 	uint8_t peer_mac[ETH_ALEN];
+ 
+ 	cemi = (struct ecm_classifier_emesh_sawf_instance *)aci;
+@@ -1775,21 +1778,40 @@ void ecm_classifier_emesh_sawf_update_la
+ 		return;
+ 	}
+ 
++	ecm_db_netdevs_get_and_hold(ci, ECM_TRACKER_SENDER_TYPE_SRC, &src_dev, &dest_dev);
++
+ 	/*
+ 	 * Get mac address for destination node
+ 	 */
+ 	ecm_db_connection_node_address_get(ci, ECM_DB_OBJ_DIR_TO, peer_mac);
+-	ecm_emesh.update_peer_mesh_latency_params(peer_mac,
+-			cemi->service_interval_dl, cemi->burst_size_dl, cemi->service_interval_ul, cemi->burst_size_ul,
+-			cemi->pcp[ECM_CONN_DIR_FLOW], ECM_CLASSIFIER_EMESH_SUB_LATENCY_PARAMS);
++
++	mesh_params.peer_mac = peer_mac;
++	mesh_params.dst_dev = dest_dev;
++	mesh_params.src_dev = src_dev;
++	mesh_params.service_interval_dl = cemi->service_interval_dl;
++	mesh_params.service_interval_ul = cemi->service_interval_ul;
++	mesh_params.burst_size_dl = cemi->burst_size_dl;
++	mesh_params.burst_size_ul = cemi->burst_size_ul;
++	mesh_params.priority = cemi->pcp[ECM_CONN_DIR_FLOW];
++	mesh_params.accel_or_decel = ECM_CLASSIFIER_EMESH_SUB_LATENCY_PARAMS;
++
++	ecm_emesh.update_peer_mesh_latency_params(&mesh_params);
+ 
+ 	/*
+ 	 * Get mac address for source node
+ 	 */
+ 	ecm_db_connection_node_address_get(ci, ECM_DB_OBJ_DIR_FROM, peer_mac);
+-	ecm_emesh.update_peer_mesh_latency_params(peer_mac,
+-			cemi->service_interval_dl, cemi->burst_size_dl, cemi->service_interval_ul, cemi->burst_size_ul,
+-			cemi->pcp[ECM_CONN_DIR_FLOW], ECM_CLASSIFIER_EMESH_SUB_LATENCY_PARAMS);
++
++	mesh_params.peer_mac = peer_mac;
++	mesh_params.dst_dev = src_dev;
++	mesh_params.src_dev = dest_dev;
++	ecm_emesh.update_peer_mesh_latency_params(&mesh_params);
++
++	if (src_dev)
++		dev_put(src_dev);
++
++	if (dest_dev)
++		dev_put(dest_dev);
+ 
+ 	ecm_db_connection_deref(ci);
+ }
+@@ -1895,6 +1917,8 @@ static void ecm_classifier_emesh_sawf_up
+ 	uint8_t service_interval_ul;
+ 	uint32_t burst_size_ul;
+ 	struct sk_buff *skb;
++	struct net_device *src_dev, *dest_dev = NULL;
++	struct ecm_classifer_emesh_sawf_mesh_latency_params mesh_params = {0};
+ 	uint8_t dmac[ETH_ALEN];
+ 	uint8_t smac[ETH_ALEN];
+ 
+@@ -1933,6 +1957,8 @@ static void ecm_classifier_emesh_sawf_up
+ 		return;
+ 	}
+ 
++	ecm_db_netdevs_get_and_hold(ci, ECM_TRACKER_SENDER_TYPE_SRC, &src_dev, &dest_dev);
++
+ 	/*
+ 	 * Invoke SPM rule lookup API to update skb priority
+ 	 * When latency config is enabled, fetch latency parameter
+@@ -1966,9 +1992,16 @@ static void ecm_classifier_emesh_sawf_up
+ 		/*
+ 		 * Send destination mac address of this connection
+ 		 */
+-		ecm_emesh.update_peer_mesh_latency_params(dmac,
+-				service_interval_dl, burst_size_dl, service_interval_ul, burst_size_ul,
+-				skb->priority, ECM_CLASSIFIER_EMESH_ADD_LATENCY_PARAMS);
++		mesh_params.dst_dev = dest_dev;
++		mesh_params.src_dev = src_dev;
++		mesh_params.peer_mac = dmac;
++		mesh_params.service_interval_dl = service_interval_dl;
++		mesh_params.service_interval_ul = service_interval_ul;
++		mesh_params.burst_size_dl = burst_size_dl;
++		mesh_params.burst_size_ul = burst_size_ul;
++		mesh_params.priority = skb->priority;
++		mesh_params.accel_or_decel = ECM_CLASSIFIER_EMESH_ADD_LATENCY_PARAMS;
++		ecm_emesh.update_peer_mesh_latency_params(&mesh_params);
+ 	}
+ 
+ 	/*
+@@ -1981,11 +2014,24 @@ static void ecm_classifier_emesh_sawf_up
+ 		/*
+ 		 * Send source mac address of this connection
+ 		 */
+-		ecm_emesh.update_peer_mesh_latency_params(smac,
+-				service_interval_dl, burst_size_dl, service_interval_ul, burst_size_ul,
+-				skb->priority, ECM_CLASSIFIER_EMESH_ADD_LATENCY_PARAMS);
++		mesh_params.peer_mac = smac;
++		mesh_params.dst_dev = src_dev;
++		mesh_params.src_dev = dest_dev;
++		mesh_params.service_interval_dl = service_interval_dl;
++		mesh_params.service_interval_ul = service_interval_ul;
++		mesh_params.burst_size_dl = burst_size_dl;
++		mesh_params.burst_size_ul = burst_size_ul;
++		mesh_params.priority = skb->priority;
++		mesh_params.accel_or_decel = ECM_CLASSIFIER_EMESH_ADD_LATENCY_PARAMS;
++		ecm_emesh.update_peer_mesh_latency_params(&mesh_params);
+ 	}
+ 
++	if (src_dev)
++		dev_put(src_dev);
++
++	if (dest_dev)
++		dev_put(dest_dev);
++
+ 	ecm_db_connection_deref(ci);
+ }
+ 
+--- a/ecm_classifier_mscs.c
++++ b/ecm_classifier_mscs.c
+@@ -425,6 +425,8 @@ static void ecm_classifier_mscs_process(
+ #ifdef ECM_CLASSIFIER_MSCS_SCS_ENABLE
+ 	struct sp_rule_input_params flow_input_params;
+ 	struct sp_rule_output_params flow_output_params;
++	struct ecm_classifier_mscs_get_priority_info get_priority_info = {0};
++	struct ecm_classifier_mscs_rule_match_info rule_match_info = {0};
+ 	ecm_classifier_mscs_scs_priority_callback_t scs_cb = NULL;
+ #endif
+ #ifdef ECM_MULTICAST_ENABLE
+@@ -545,7 +547,9 @@ static void ecm_classifier_mscs_process(
+ 					goto check_mscs_classifier;
+ 				}
+ 
+-				result = scs_cb(flow_output_params.rule_id, dmac);
++				rule_match_info.rule_id = flow_output_params.rule_id;
++				rule_match_info.dst_mac = dmac;
++				result = scs_cb(&rule_match_info);
+ 			}
+ 		}
+ 
+@@ -617,7 +621,10 @@ static void ecm_classifier_mscs_process(
+ 			/*
+ 			 * Invoke callback registered to classifier for peer look up
+ 			 */
+-			result = cb(smac, dmac, skb);
++			get_priority_info.src_mac = smac;
++			get_priority_info.dst_mac = dmac;
++			get_priority_info.skb = skb;
++			result = cb(&get_priority_info);
+ 
+ 			if (result == ECM_CLASSIFIER_MSCS_RESULT_UPDATE_PRIORITY) {
+ 				cmscsi->mscs_priority_update = true;
+--- a/ecm_wifi_plugins/ecm_wifi_plugin_emesh.c
++++ b/ecm_wifi_plugins/ecm_wifi_plugin_emesh.c
+@@ -26,6 +26,27 @@
+ #include "ecm_wifi_plugin.h"
+ 
+ /*
++ * ecm_wifi_plugin_emesh_sawf_update_peer_mesh_params()
++ *	Update mesh latency params.
++ */
++static inline void ecm_wifi_plugin_emesh_sawf_update_peer_mesh_params(struct ecm_classifer_emesh_sawf_mesh_latency_params *mesh_params)
++{
++	struct qca_mesh_latency_update_peer_param wlan_mesh_params = {0};
++
++	wlan_mesh_params.dest_mac = mesh_params->peer_mac;
++	wlan_mesh_params.src_dev = mesh_params->src_dev;
++	wlan_mesh_params.dst_dev = mesh_params->dst_dev;
++	wlan_mesh_params.service_interval_dl = mesh_params->service_interval_dl;
++	wlan_mesh_params.service_interval_ul = mesh_params->service_interval_ul;
++	wlan_mesh_params.burst_size_dl = mesh_params->burst_size_dl;
++	wlan_mesh_params.burst_size_ul = mesh_params->burst_size_ul;
++	wlan_mesh_params.priority = mesh_params->priority;
++	wlan_mesh_params.add_or_sub = mesh_params->accel_or_decel;
++
++	qca_mesh_latency_update_peer_parameter_v2(&wlan_mesh_params);
++}
++
++/*
+  * ecm_wifi_plugin_emesh_sawf_conn_sync()
+  *	Connection sync callback for EMESH-SAWF classifier.
+  */
+@@ -69,7 +90,7 @@ static inline uint32_t ecm_wifi_plugin_e
+  * 	Register EMESH client callback with ECM EMSH classifier to update peer mesh latency parameters.
+  */
+ static struct ecm_classifier_emesh_sawf_callbacks ecm_wifi_plugin_emesh = {
+-	.update_peer_mesh_latency_params = qca_mesh_latency_update_peer_parameter,
++	.update_peer_mesh_latency_params = ecm_wifi_plugin_emesh_sawf_update_peer_mesh_params,
+ 	.update_service_id_get_msduq = ecm_wifi_plugin_emesh_sawf_get_mark_data,
+ 	.sawf_conn_sync = ecm_wifi_plugin_emesh_sawf_conn_sync,
+ };
+--- a/ecm_wifi_plugins/ecm_wifi_plugin_mscs.c
++++ b/ecm_wifi_plugins/ecm_wifi_plugin_mscs.c
+@@ -26,13 +26,42 @@
+ #include "ecm_wifi_plugin.h"
+ 
+ /*
++ * ecm_wifi_plugin_get_peer_priority()
++ *	Get peer priority callback into wlan driver.
++ */
++static inline int ecm_wifi_plugin_get_peer_priority(struct ecm_classifier_mscs_get_priority_info *get_priority_info)
++{
++	struct qca_mscs_get_priority_param wlan_get_priority_param = {0};
++
++	wlan_get_priority_param.dst_mac = get_priority_info->dst_mac;
++	wlan_get_priority_param.src_mac = get_priority_info->src_mac;
++	wlan_get_priority_param.skb = get_priority_info->skb;
++
++	return qca_mscs_peer_lookup_n_get_priority_v2(&wlan_get_priority_param);
++}
++
++/*
++ * ecm_wifi_plugin_update_skb_priority()
++ *	Update skb priority callback into wlan driver.
++ */
++static inline bool ecm_wifi_plugin_update_skb_priority(struct ecm_classifier_mscs_rule_match_info *match_info)
++{
++	struct qca_scs_peer_lookup_n_rule_match rule_match_param = {0};
++
++	rule_match_param.dst_mac_addr = match_info->dst_mac;
++	rule_match_param.rule_id = match_info->rule_id;
++
++	return qca_scs_peer_lookup_n_rule_match_v2(&rule_match_param);
++}
++
++/*
+  * ecm_wifi_plugin
+  * 	Register MSCS client callback with ECM MSCS classifier to support MSCS wifi peer lookup.
+  */
+ static struct ecm_classifier_mscs_callbacks ecm_wifi_plugin_mscs = {
+-	.get_peer_priority = qca_mscs_peer_lookup_n_get_priority,
++	.get_peer_priority = ecm_wifi_plugin_get_peer_priority,
+ #ifdef ECM_CLASSIFIER_MSCS_SCS_ENABLE
+-	.update_skb_priority = qca_scs_peer_lookup_n_rule_match,
++	.update_skb_priority = ecm_wifi_plugin_update_skb_priority,
+ #endif
+ };
+ 
+--- a/exports/ecm_classifier_emesh_public.h
++++ b/exports/ecm_classifier_emesh_public.h
+@@ -80,12 +80,25 @@ struct ecm_classifier_emesh_sawf_flow_in
+ };
+ 
+ /**
++ * Structure collecting mesh latency params to send it to wlan driver
++ * via registered callback.
++ */
++struct ecm_classifer_emesh_sawf_mesh_latency_params {
++	struct net_device *dst_dev;		/**< Destination net dev. */
++	struct net_device *src_dev;		/**< Source net dev. */
++	uint8_t *peer_mac;			/**< Peer MAC. */
++	uint32_t service_interval_dl;		/**< Service interval DL. */
++	uint32_t burst_size_dl;			/**< Burst size DL. */
++	uint32_t service_interval_ul;		/**< Service interval UL. */
++	uint32_t burst_size_ul;			/**< Burst size UL. */
++	uint16_t priority;			/**< Priority. */
++	uint8_t accel_or_decel;			/**< Time of the callback. */
++};
++
++/**
+  * Mesh latency configuration update callback function to which MSCS client will register.
+  */
+-typedef int (*ecm_classifier_emesh_callback_t)(uint8_t dest_mac[],
+-		uint32_t service_interval_dl, uint32_t burst_size_dl,
+-		uint32_t service_interval_ul, uint32_t burst_size_ul,
+-		uint16_t priority, uint8_t add_or_sub);
++typedef void (*ecm_classifier_emesh_callback_t)(struct ecm_classifer_emesh_sawf_mesh_latency_params *mesh_params);
+ 
+ /**
+  * MSDUQ callback to which emesh-sawf will register.
+--- a/exports/ecm_classifier_mscs_public.h
++++ b/exports/ecm_classifier_mscs_public.h
+@@ -43,10 +43,32 @@ enum ecm_classifier_mscs_results {
+ typedef enum /** @cond */ ecm_classifier_mscs_results /** @endcond */ ecm_classifier_mscs_result_t;
+ 
+ /**
++ * Structure containing params to get MSCS priority.
++ */
++struct ecm_classifier_mscs_get_priority_info {
++	struct net_device *dst_dev;	/**< Destination net dev. */
++	struct net_device *src_dev;	/**< Source net dev. */
++	uint8_t *src_mac;		/**< Source MAC address. */
++	uint8_t *dst_mac;		/**< Destination MAC address. */
++	struct sk_buff *skb;		/**< SKB pointer. */
++};
++
++/**
++ * Structure containing params for SCS rule match info.
++ */
++struct ecm_classifier_mscs_rule_match_info {
++	struct net_device *dst_dev;	/**< Destination net dev. */
++	struct net_device *src_dev;	/**< Source net dev. */
++	uint8_t *src_mac;		/**< Source MAC. */
++	uint8_t *dst_mac;		/**< Destination MAC. */
++	uint32_t rule_id;		/**< Rule ID. */
++};
++
++/**
+  * Callback to which MSCS clients will register.
+  */
+-typedef int (*ecm_classifier_mscs_process_callback_t)(uint8_t src_mac[], uint8_t dst_mac[], struct sk_buff* skb);
+-typedef bool (*ecm_classifier_mscs_scs_priority_callback_t)(uint32_t rule_id, uint8_t *dst_mac_addr);
++typedef int (*ecm_classifier_mscs_process_callback_t)(struct ecm_classifier_mscs_get_priority_info *priority_info);
++typedef bool (*ecm_classifier_mscs_scs_priority_callback_t)(struct ecm_classifier_mscs_rule_match_info *rule_match_info);
+ 
+ /**
+  * Data structure for MSCS classifier callbacks.

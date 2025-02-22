@@ -1,0 +1,84 @@
+From 5a87f3b9acb7a85958ef220a8f83c3cf24bfba4d Mon Sep 17 00:00:00 2001
+From: Parikshit Gune <quic_pgune@quicinc.com>
+Date: Wed, 2 Aug 2023 10:28:53 +0530
+Subject: [PATCH] [qca-nss-ecm] Adding src and dest dev in MSCS and SCS
+ callbacks.
+
+Change-Id: Ia3a097606efb875fbe459fe4cbdfc851d0fa24ec
+Signed-off-by: Parikshit Gune <quic_pgune@quicinc.com>
+---
+ ecm_classifier_mscs.c                   | 14 ++++++++++++++
+ ecm_wifi_plugins/ecm_wifi_plugin_mscs.c |  4 ++++
+ 2 files changed, 18 insertions(+)
+
+--- a/ecm_classifier_mscs.c
++++ b/ecm_classifier_mscs.c
+@@ -421,6 +421,8 @@ static void ecm_classifier_mscs_process(
+ 	uint8_t dmac[ETH_ALEN];
+ 	bool mscs_rule_match = false;
+ 	bool scs_rule_match = false;
++	struct net_device *src_dev = NULL;
++	struct net_device *dest_dev = NULL;
+ 	uint64_t slow_pkts;
+ #ifdef ECM_CLASSIFIER_MSCS_SCS_ENABLE
+ 	struct sp_rule_input_params flow_input_params;
+@@ -507,6 +509,8 @@ static void ecm_classifier_mscs_process(
+ 		ecm_db_connection_node_address_get(ci, ECM_DB_OBJ_DIR_FROM, dmac);
+ 	}
+ 
++	ecm_db_netdevs_get_and_hold(ci, sender, &src_dev, &dest_dev);
++
+ 	/*
+ 	 * Set the invalid SCS rule id, in case if we do not find any SCS rule.
+ 	 */
+@@ -549,6 +553,8 @@ static void ecm_classifier_mscs_process(
+ 
+ 				rule_match_info.rule_id = flow_output_params.rule_id;
+ 				rule_match_info.dst_mac = dmac;
++				rule_match_info.src_dev = src_dev;
++				rule_match_info.dst_dev = dest_dev;
+ 				result = scs_cb(&rule_match_info);
+ 			}
+ 		}
+@@ -623,6 +629,8 @@ static void ecm_classifier_mscs_process(
+ 			 */
+ 			get_priority_info.src_mac = smac;
+ 			get_priority_info.dst_mac = dmac;
++			get_priority_info.src_dev = src_dev;
++			get_priority_info.dst_dev = dest_dev;
+ 			get_priority_info.skb = skb;
+ 			result = cb(&get_priority_info);
+ 
+@@ -713,6 +721,12 @@ mscs_classifier_out:
+ 	/*
+ 	 * Return our process response
+ 	 */
++	if(src_dev)
++		dev_put(src_dev);
++
++	if(dest_dev)
++		dev_put(dest_dev);
++
+ 	*process_response = cmscsi->process_response;
+ 	spin_unlock_bh(&ecm_classifier_mscs_lock);
+ }
+--- a/ecm_wifi_plugins/ecm_wifi_plugin_mscs.c
++++ b/ecm_wifi_plugins/ecm_wifi_plugin_mscs.c
+@@ -35,6 +35,8 @@ static inline int ecm_wifi_plugin_get_pe
+ 
+ 	wlan_get_priority_param.dst_mac = get_priority_info->dst_mac;
+ 	wlan_get_priority_param.src_mac = get_priority_info->src_mac;
++	wlan_get_priority_param.src_dev = get_priority_info->src_dev;
++	wlan_get_priority_param.dst_dev = get_priority_info->dst_dev;
+ 	wlan_get_priority_param.skb = get_priority_info->skb;
+ 
+ 	return qca_mscs_peer_lookup_n_get_priority_v2(&wlan_get_priority_param);
+@@ -50,6 +52,8 @@ static inline bool ecm_wifi_plugin_updat
+ 
+ 	rule_match_param.dst_mac_addr = match_info->dst_mac;
+ 	rule_match_param.rule_id = match_info->rule_id;
++	rule_match_param.src_dev = match_info->src_dev;
++	rule_match_param.dst_dev = match_info->dst_dev;
+ 
+ 	return qca_scs_peer_lookup_n_rule_match_v2(&rule_match_param);
+ }

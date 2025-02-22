@@ -1,0 +1,32 @@
+--- a/ipq806x/nss_gmac_ctrl.c
++++ b/ipq806x/nss_gmac_ctrl.c
+@@ -1390,6 +1390,9 @@ static int32_t nss_gmac_probe(struct pla
+ 		}
+ 	}
+ 
++	/* workaround for tplink,onhub eth0 phy_attach_direct panic with poll enabled */
++	SET_NETDEV_DEV(netdev, gmacdev->miibus->parent); /* (netdev, &pdev->dev) ? */
++
+ 	/*
+ 	 * Connect PHY
+ 	 */
+@@ -1439,8 +1442,6 @@ static int32_t nss_gmac_probe(struct pla
+ 		netdev_dbg(netdev, "%s MII_PHYSID2 - 0x%04x\n", netdev->name,
+ 		      nss_gmac_mii_rd_reg(gmacdev, gmacdev->phy_base, MII_PHYSID2));
+ 	} else if (gmacdev->phy_base != NSS_GMAC_NO_MDIO_PHY) {
+-		SET_NETDEV_DEV(netdev, gmacdev->miibus->parent);
+-
+ 		/*
+ 		 * Issue a phy_attach for the interface connected to a switch
+ 		 */
+@@ -1485,8 +1486,8 @@ static int32_t nss_gmac_probe(struct pla
+ 	netdev_change_features(netdev);
+ 	rtnl_unlock();
+ 
+-	netdev_dbg(netdev, "Initialized NSS GMAC%d interface %s: (base = 0x%lx, irq = %d, PhyId = %d, PollLink = %d)\n"
+-			, gmacdev->macid, netdev->name, netdev->base_addr
++	netdev_info(netdev, "Initialized NSS GMAC%d mode: %s, interface %s: (base = 0x%lx, irq = %d, PhyId = %d, PollLink = %d)\n"
++			, gmacdev->macid, phy_modes(gmacdev->phy_mii_type), netdev->name, netdev->base_addr
+ 			, netdev->irq, gmacdev->phy_base
+ 			, test_bit(__NSS_GMAC_LINKPOLL, &gmacdev->flags));
+ 
