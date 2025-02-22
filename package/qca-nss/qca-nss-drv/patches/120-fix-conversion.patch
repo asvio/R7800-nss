@@ -1,0 +1,237 @@
+--- a/nss_dynamic_interface.c
++++ b/nss_dynamic_interface.c
+@@ -226,7 +226,7 @@ int nss_dynamic_interface_alloc_node(enu
+ 	core_id = nss_top_main.dynamic_interface_table[type];
+ 	nss_ctx = (struct nss_ctx_instance *)&nss_top_main.nss[core_id];
+ 	di_data.if_num = -1;
+-	di_data.response = false;
++	di_data.response = -1;
+ 	init_completion(&di_data.complete);
+ 
+ 	nss_dynamic_interface_msg_init(&ndim, NSS_DYNAMIC_INTERFACE, NSS_DYNAMIC_INTERFACE_ALLOC_NODE,
+@@ -285,7 +285,7 @@ nss_tx_status_t nss_dynamic_interface_de
+ 
+ 	core_id = nss_top_main.dynamic_interface_table[type];
+ 	nss_ctx = (struct nss_ctx_instance *)&nss_top_main.nss[core_id];
+-	di_data.response = false;
++	di_data.response = -1;
+ 	init_completion(&di_data.complete);
+ 
+ 	if (nss_is_dynamic_interface(if_num) == false) {
+--- a/nss_ipv6.c
++++ b/nss_ipv6.c
+@@ -377,7 +377,7 @@ EXPORT_SYMBOL(nss_ipv6_get_mgr);
+  * nss_ipv6_register_handler()
+  *	Register our handler to receive messages for this interface
+  */
+-void nss_ipv6_register_handler()
++void nss_ipv6_register_handler(void)
+ {
+ 	struct nss_ctx_instance *nss_ctx = nss_ipv6_get_mgr();
+ 
+--- a/nss_lag.c
++++ b/nss_lag.c
+@@ -237,7 +237,7 @@ nss_tx_status_t nss_lag_tx_slave_state(u
+ 	struct nss_lag_pvt lag_msg_state;
+ 
+ 	init_completion(&lag_msg_state.complete);
+-	lag_msg_state.response = false;
++	lag_msg_state.response = -1;
+ 
+ 	/*
+ 	 * Construct a message to the NSS to update it
+@@ -268,6 +268,6 @@ nss_tx_status_t nss_lag_tx_slave_state(u
+ 		return NSS_TX_FAILURE;
+ 	}
+ 
+-	return lag_msg_state.response;
++	return status;
+ }
+ EXPORT_SYMBOL(nss_lag_tx_slave_state);
+--- a/nss_n2h.c
++++ b/nss_n2h.c
+@@ -1153,16 +1153,16 @@ static nss_tx_status_t nss_n2h_mitigatio
+ 	/*
+ 	 * ACK/NACK received from NSS FW
+ 	 */
+-	if (NSS_FAILURE == nss_n2h_mitigationcp[core_num].response) {
++	if (NSS_TX_FAILURE == nss_n2h_mitigationcp[core_num].response) {
+ 		goto failure;
+ 	}
+ 
+ 	up(&nss_n2h_mitigationcp[core_num].sem);
+-	return NSS_SUCCESS;
++	return NSS_TX_SUCCESS;
+ 
+ failure:
+ 	up(&nss_n2h_mitigationcp[core_num].sem);
+-	return NSS_FAILURE;
++	return NSS_TX_FAILURE;
+ }
+ 
+ static inline void nss_n2h_buf_pool_free(struct nss_n2h_buf_pool *buf_pool)
+@@ -1234,7 +1234,7 @@ static nss_tx_status_t nss_n2h_buf_pool_
+ 		/*
+ 		 * ACK/NACK received from NSS FW
+ 		 */
+-		if (NSS_FAILURE == nss_n2h_bufcp[core_num].response) {
++		if (NSS_TX_FAILURE == nss_n2h_bufcp[core_num].response) {
+ 
+ 			nss_n2h_buf_pool_free(buf_pool);
+ 			goto failure;
+@@ -1243,10 +1243,10 @@ static nss_tx_status_t nss_n2h_buf_pool_
+ 		up(&nss_n2h_bufcp[core_num].sem);
+ 	} while(num_pages);
+ 
+-	return NSS_SUCCESS;
++	return NSS_TX_SUCCESS;
+ failure:
+ 	up(&nss_n2h_bufcp[core_num].sem);
+-	return NSS_FAILURE;
++	return NSS_TX_FAILURE;
+ }
+ 
+ /*
+@@ -1545,7 +1545,7 @@ static nss_tx_status_t nss_n2h_host_bp_c
+ 	if (nss_tx_status != NSS_TX_SUCCESS) {
+ 		nss_warning("%px: nss_tx error setting back pressure\n", nss_ctx);
+ 		up(&nss_n2h_host_bp_cfg_pvt.sem);
+-		return NSS_FAILURE;
++		return NSS_TX_FAILURE;
+ 	}
+ 
+ 	/*
+@@ -1555,7 +1555,7 @@ static nss_tx_status_t nss_n2h_host_bp_c
+ 	if (ret == 0) {
+ 		nss_warning("%px: Waiting for ack timed out\n", nss_ctx);
+ 		up(&nss_n2h_host_bp_cfg_pvt.sem);
+-		return NSS_FAILURE;
++		return NSS_TX_FAILURE;
+ 	}
+ 
+ 	/*
+@@ -1563,11 +1563,11 @@ static nss_tx_status_t nss_n2h_host_bp_c
+ 	 */
+ 	if (nss_n2h_host_bp_cfg_pvt.response == NSS_FAILURE) {
+ 		up(&nss_n2h_host_bp_cfg_pvt.sem);
+-		return NSS_FAILURE;
++		return NSS_TX_FAILURE;
+ 	}
+ 
+ 	up(&nss_n2h_host_bp_cfg_pvt.sem);
+-	return NSS_SUCCESS;
++	return NSS_TX_SUCCESS;
+ }
+ 
+ /*
+--- a/nss_pm.c
++++ b/nss_pm.c
+@@ -335,7 +335,7 @@ nss_pm_interface_status_t nss_pm_set_per
+ 		break;
+ 
+ 	default:
+-		index = NSS_PM_PERF_LEVEL_IDLE;
++		index = (nss_freq_scales_t)NSS_PM_PERF_LEVEL_IDLE;
+ 	}
+ 
+ #if !defined(NSS_HAL_IPQ807x_SUPPORT)
+--- a/nss_rps.c
++++ b/nss_rps.c
+@@ -251,7 +251,7 @@ static nss_tx_status_t nss_rps_cfg(struc
+ 		nss_warning("%px: nss_tx error setting rps\n", nss_ctx);
+ 
+ 		up(&nss_rps_cfg_pvt.sem);
+-		return NSS_FAILURE;
++		return NSS_TX_FAILURE;
+ 	}
+ 
+ 	/*
+@@ -261,7 +261,7 @@ static nss_tx_status_t nss_rps_cfg(struc
+ 	if (ret == 0) {
+ 		nss_warning("%px: Waiting for ack timed out\n", nss_ctx);
+ 		up(&nss_rps_cfg_pvt.sem);
+-		return NSS_FAILURE;
++		return NSS_TX_FAILURE;
+ 	}
+ 
+ 	/*
+@@ -269,13 +269,13 @@ static nss_tx_status_t nss_rps_cfg(struc
+ 	 * If NACK: Handler function will restore nss_rps_config
+ 	 * to previous state.
+ 	 */
+-	if (NSS_FAILURE == nss_rps_cfg_pvt.response) {
++	if (NSS_TX_FAILURE == nss_rps_cfg_pvt.response) {
+ 		up(&nss_rps_cfg_pvt.sem);
+-		return NSS_FAILURE;
++		return NSS_TX_FAILURE;
+ 	}
+ 
+ 	up(&nss_rps_cfg_pvt.sem);
+-	return NSS_SUCCESS;
++	return NSS_TX_SUCCESS;
+ }
+ 
+ /*
+@@ -300,11 +300,11 @@ static nss_tx_status_t nss_rps_ipv4_hash
+ 		nss_warning("%px: nss_tx error setting rps\n", nss_ctx);
+ 
+ 		up(&nss_rps_cfg_pvt.sem);
+-		return NSS_FAILURE;
++		return NSS_TX_FAILURE;
+ 	}
+ 
+ 	up(&nss_rps_cfg_pvt.sem);
+-	return NSS_SUCCESS;
++	return NSS_TX_SUCCESS;
+ }
+ 
+ /*
+@@ -329,11 +329,11 @@ static nss_tx_status_t nss_rps_ipv6_hash
+ 		nss_warning("%px: nss_tx error setting rps\n", nss_ctx);
+ 
+ 		up(&nss_rps_cfg_pvt.sem);
+-		return NSS_FAILURE;
++		return NSS_TX_FAILURE;
+ 	}
+ 
+ 	up(&nss_rps_cfg_pvt.sem);
+-	return NSS_SUCCESS;
++	return NSS_TX_SUCCESS;
+ }
+ 
+ /*
+@@ -368,7 +368,7 @@ static nss_tx_status_t nss_rps_pri_map_c
+ 		nss_warning("%px: nss_tx error setting rps\n", nss_ctx);
+ 
+ 		up(&nss_rps_cfg_pvt.sem);
+-		return NSS_FAILURE;
++		return NSS_TX_FAILURE;
+ 	}
+ 
+ 	/*
+@@ -378,7 +378,7 @@ static nss_tx_status_t nss_rps_pri_map_c
+ 	if (ret == 0) {
+ 		nss_warning("%px: Waiting for ack timed out\n", nss_ctx);
+ 		up(&nss_rps_cfg_pvt.sem);
+-		return NSS_FAILURE;
++		return NSS_TX_FAILURE;
+ 	}
+ 
+ 	/*
+@@ -386,13 +386,13 @@ static nss_tx_status_t nss_rps_pri_map_c
+ 	 * If NACK: Handler function will restore nss_rps_config
+ 	 * to previous state.
+ 	 */
+-	if (NSS_FAILURE == nss_rps_cfg_pvt.response) {
++	if (NSS_TX_FAILURE == nss_rps_cfg_pvt.response) {
+ 		up(&nss_rps_cfg_pvt.sem);
+-		return NSS_FAILURE;
++		return NSS_TX_FAILURE;
+ 	}
+ 
+ 	up(&nss_rps_cfg_pvt.sem);
+-	return NSS_SUCCESS;
++	return NSS_TX_SUCCESS;
+ }
+ 
+ /*

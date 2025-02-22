@@ -1,0 +1,178 @@
+From 85d8656de0a22dc5b45a5f8810e5863726bd5a9b Mon Sep 17 00:00:00 2001
+From: Swati Singh <quic_swasing@quicinc.com>
+Date: Mon, 26 Jun 2023 16:33:51 +0530
+Subject: [PATCH] [qca-nss-ecm]: Passing structure as params for sawf_hdl
+ query.
+
+The wifi driver call to get sawf hdl info will have
+struct ecm_classifier_sawf_flow_info as params.
+
+Also, the wifi driver signature will be 32 bits to
+return sawf_mark.
+
+Change-Id: I5f49be2938887a8c0669e9b760e5fee24b8bd290
+Signed-off-by: Swati Singh <quic_swasing@quicinc.com>
+---
+ ecm_classifier_emesh.c                   | 41 +++++++++++++++++++++---
+ ecm_wifi_plugins/ecm_wifi_plugin_emesh.c | 19 ++++++++++-
+ exports/ecm_classifier_emesh_public.h    | 22 +++++++++++--
+ 3 files changed, 74 insertions(+), 8 deletions(-)
+
+--- a/ecm_classifier_emesh.c
++++ b/ecm_classifier_emesh.c
+@@ -91,6 +91,7 @@
+ #define ECM_CLASSIFIER_EMESH_SAWF_TAG_GET(sawf_meta)    ((sawf_meta >> 24) & 0xFF)
+ #define ECM_CLASSIFIER_EMESH_SAWF_TAG_IS_VALID(sawf_meta) \
+ 		((ECM_CLASSIFIER_EMESH_SAWF_TAG_GET(sawf_meta) == ECM_CLASSIFIER_EMESH_SAWF_VALID_TAG) ? true : false)
++#define ECM_CLASSIFIER_EMESH_SAWF_VALID_MSDUQ_MASK	0xffff
+ 
+ /*
+  * EMESH classifier type.
+@@ -244,6 +245,7 @@ static void ecm_classifier_emesh_sawf_fl
+ 	uint16_t msduq_reverse = ECM_CLASSIFIER_EMESH_SAWF_INVALID_MSDUQ;
+ 	uint8_t dmac[ETH_ALEN];
+ 	uint8_t smac[ETH_ALEN];
++	struct ecm_classifier_emesh_sawf_flow_info sawf_flow_info = {0};
+ 
+ 	if (msg->ip_version == 4) {
+ 		DEBUG_TRACE("%px: flow/return service_class_id=%u/%u %pI4n:%u -> %pI4n:%u protocol=%d\n", msg,
+@@ -298,10 +300,25 @@ static void ecm_classifier_emesh_sawf_fl
+ 	 */
+ 	if (ecm_emesh.update_service_id_get_msduq) {
+ 		if (dest_dev) {
+-			msduq_forward = ecm_emesh.update_service_id_get_msduq(dest_dev, dmac, msg->flow_service_class_id, 0, 0, SP_SAWF_RULE_TYPE_DEFAULT);
++			sawf_flow_info.netdev = dest_dev;
++			sawf_flow_info.peer_mac = dmac;
++			sawf_flow_info.service_id = msg->flow_service_class_id;
++			sawf_flow_info.dscp = 0;
++			sawf_flow_info.rule_id = 0;
++			sawf_flow_info.sawf_rule_type = SP_SAWF_RULE_TYPE_DEFAULT;
++
++			msduq_forward = ecm_emesh.update_service_id_get_msduq(&sawf_flow_info) & ECM_CLASSIFIER_EMESH_SAWF_VALID_MSDUQ_MASK;
+ 		}
++
+ 		if (src_dev) {
+-			msduq_reverse = ecm_emesh.update_service_id_get_msduq(src_dev, smac, msg->return_service_class_id, 0, 0, SP_SAWF_RULE_TYPE_DEFAULT);
++			sawf_flow_info.netdev = src_dev;
++			sawf_flow_info.peer_mac = smac;
++			sawf_flow_info.service_id = msg->return_service_class_id;
++			sawf_flow_info.dscp = 0;
++			sawf_flow_info.rule_id = 0;
++			sawf_flow_info.sawf_rule_type = SP_SAWF_RULE_TYPE_DEFAULT;
++
++			msduq_reverse = ecm_emesh.update_service_id_get_msduq(&sawf_flow_info) & ECM_CLASSIFIER_EMESH_SAWF_VALID_MSDUQ_MASK;
+ 		}
+ 	}
+ 
+@@ -1136,7 +1153,7 @@ static void ecm_classifier_emesh_sawf_pr
+ 	struct sp_rule_output_params flow_output_params;
+ 	struct sp_rule_output_params return_output_params;
+ 	bool is_sawf_relevant = false;
+-
++	struct ecm_classifier_emesh_sawf_flow_info sawf_flow_info = {0};
+ 	cemi = (struct ecm_classifier_emesh_sawf_instance *)aci;
+ 	DEBUG_CHECK_MAGIC(cemi, ECM_CLASSIFIER_EMESH_INSTANCE_MAGIC, "%px: magic failed\n", cemi);
+ 
+@@ -1290,7 +1307,14 @@ static void ecm_classifier_emesh_sawf_pr
+ 		 */
+ 		if (ecm_emesh.update_service_id_get_msduq) {
+ 			if (dest_dev) {
+-				msduq_forward = ecm_emesh.update_service_id_get_msduq(dest_dev, dmac, flow_output_params.service_class_id, cemi->dscp[ECM_CONN_DIR_FLOW], flow_output_params.rule_id, flow_output_params.sawf_rule_type);
++				sawf_flow_info.netdev = dest_dev;
++				sawf_flow_info.peer_mac = dmac;
++				sawf_flow_info.service_id = flow_output_params.service_class_id;
++				sawf_flow_info.dscp = cemi->dscp[ECM_CONN_DIR_FLOW];
++				sawf_flow_info.rule_id = flow_output_params.rule_id;
++				sawf_flow_info.sawf_rule_type = flow_output_params.sawf_rule_type;
++
++				msduq_forward = ecm_emesh.update_service_id_get_msduq(&sawf_flow_info) & ECM_CLASSIFIER_EMESH_SAWF_VALID_MSDUQ_MASK;
+ 
+ 				/*
+ 				 * Mark the skb with SAWF meta data for flow creation packet.
+@@ -1300,7 +1324,14 @@ static void ecm_classifier_emesh_sawf_pr
+ 									msduq_forward);
+ 			}
+ 			if (src_dev) {
+-				msduq_reverse = ecm_emesh.update_service_id_get_msduq(src_dev, smac, return_output_params.service_class_id, cemi->dscp[ECM_CONN_DIR_RETURN], return_output_params.rule_id, return_output_params.sawf_rule_type);
++				sawf_flow_info.netdev = src_dev;
++				sawf_flow_info.peer_mac = smac;
++				sawf_flow_info.service_id = return_output_params.service_class_id;
++				sawf_flow_info.dscp = cemi->dscp[ECM_CONN_DIR_RETURN];
++				sawf_flow_info.rule_id = return_output_params.rule_id;
++				sawf_flow_info.sawf_rule_type = return_output_params.sawf_rule_type;
++
++				msduq_reverse = ecm_emesh.update_service_id_get_msduq(&sawf_flow_info) & ECM_CLASSIFIER_EMESH_SAWF_VALID_MSDUQ_MASK;
+ 			}
+ 		}
+ 
+--- a/ecm_wifi_plugins/ecm_wifi_plugin_emesh.c
++++ b/ecm_wifi_plugins/ecm_wifi_plugin_emesh.c
+@@ -48,12 +48,29 @@ static inline void ecm_wifi_plugin_emesh
+ }
+ 
+ /*
++ * ecm_wifi_plugin_emesh_sawf_get_mark_data()
++ * 	get skb mark callback for EMESH-SAWF classifier.
++ */
++static inline uint32_t ecm_wifi_plugin_emesh_sawf_get_mark_data(struct ecm_classifier_emesh_sawf_flow_info *sawf_flow_info)
++{
++	struct qca_sawf_metadata_param sawf_params = {0};
++
++	sawf_params.netdev = sawf_flow_info->netdev;
++	sawf_params.peer_mac = sawf_flow_info->peer_mac;
++	sawf_params.service_id = sawf_flow_info->service_id;
++	sawf_params.dscp = sawf_flow_info->dscp;
++	sawf_params.rule_id = sawf_flow_info->rule_id;
++	sawf_params.sawf_rule_type = sawf_flow_info->sawf_rule_type;
++
++	return qca_sawf_get_mark_metadata(&sawf_params);
++}
++/*
+  * ecm_wifi_plugin_emesh
+  * 	Register EMESH client callback with ECM EMSH classifier to update peer mesh latency parameters.
+  */
+ static struct ecm_classifier_emesh_sawf_callbacks ecm_wifi_plugin_emesh = {
+ 	.update_peer_mesh_latency_params = qca_mesh_latency_update_peer_parameter,
+-	.update_service_id_get_msduq = qca_sawf_get_msduq_v2,
++	.update_service_id_get_msduq = ecm_wifi_plugin_emesh_sawf_get_mark_data,
+ 	.sawf_conn_sync = ecm_wifi_plugin_emesh_sawf_conn_sync,
+ };
+ 
+--- a/exports/ecm_classifier_emesh_public.h
++++ b/exports/ecm_classifier_emesh_public.h
+@@ -61,6 +61,25 @@ struct ecm_classifier_fse_info {
+ };
+ 
+ /**
++ * ecm_classifier_emesh_sawf_flow_info
++ *
++ * @netdev : Netdevice
++ * @peer_mac : Destination peer mac address
++ * @service_id : Service class id
++ * @dscp : Differentiated Services Code Point
++ * @rule_id : Rule id
++ * @sawf_rule_type: Rule type
++ */
++struct ecm_classifier_emesh_sawf_flow_info {
++	struct net_device *netdev;
++	uint8_t *peer_mac;
++	uint32_t service_id;
++	uint32_t dscp;
++	uint32_t rule_id;
++	uint8_t sawf_rule_type;
++};
++
++/**
+  * Mesh latency configuration update callback function to which MSCS client will register.
+  */
+ typedef int (*ecm_classifier_emesh_callback_t)(uint8_t dest_mac[],
+@@ -71,8 +90,7 @@ typedef int (*ecm_classifier_emesh_callb
+ /**
+  * MSDUQ callback to which emesh-sawf will register.
+  */
+-typedef uint16_t (*ecm_classifier_emesh_msduq_callback_t)(struct net_device *out_dev,
+-		uint8_t dest_mac[], uint32_t service_class_id, uint32_t dscp, uint32_t rule_id, uint8_t sawf_rule_type);
++typedef uint32_t (*ecm_classifier_emesh_msduq_callback_t)(struct ecm_classifier_emesh_sawf_flow_info *sawf_flow_info);
+ 
+ /**
+  * SAWF params sync callback function pointer.
