@@ -1,0 +1,517 @@
+--- a/ath10k-4.13/htt_rx.c
++++ b/ath10k-4.13/htt_rx.c
+@@ -2499,8 +2499,6 @@ static void ath10k_htt_fetch_peer_stats(
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-			    peer_id, peer, peer ? peer->sta : NULL);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-4.16/htt_rx.c
++++ b/ath10k-4.16/htt_rx.c
+@@ -2730,8 +2730,6 @@ static void ath10k_htt_fetch_peer_stats(
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-			    peer_id, peer, peer ? peer->sta : NULL);
+ 		goto out;
+ 	}
+ 
+@@ -2783,8 +2781,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-4.19/htt_rx.c
++++ b/ath10k-4.19/htt_rx.c
+@@ -2969,15 +2969,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -3029,8 +3022,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-4.20/htt_rx.c
++++ b/ath10k-4.20/htt_rx.c
+@@ -3139,15 +3139,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -3199,8 +3192,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-5.10/htt_rx.c
++++ b/ath10k-5.10/htt_rx.c
+@@ -4113,15 +4113,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -4174,8 +4167,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-5.11/htt_rx.c
++++ b/ath10k-5.11/htt_rx.c
+@@ -3933,15 +3933,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -3994,8 +3987,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-5.12/htt_rx.c
++++ b/ath10k-5.12/htt_rx.c
+@@ -4114,15 +4114,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -4175,8 +4168,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-5.13/htt_rx.c
++++ b/ath10k-5.13/htt_rx.c
+@@ -4114,15 +4114,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -4175,8 +4168,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-5.15/htt_rx.c
++++ b/ath10k-5.15/htt_rx.c
+@@ -4112,15 +4112,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -4173,8 +4166,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-5.17/htt_rx.c
++++ b/ath10k-5.17/htt_rx.c
+@@ -4122,15 +4122,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -4183,8 +4176,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-5.19/htt_rx.c
++++ b/ath10k-5.19/htt_rx.c
+@@ -4246,15 +4246,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -4307,8 +4300,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-5.2/htt_rx.c
++++ b/ath10k-5.2/htt_rx.c
+@@ -3492,15 +3492,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -3553,8 +3546,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-5.4/htt_rx.c
++++ b/ath10k-5.4/htt_rx.c
+@@ -4099,15 +4099,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -4160,8 +4153,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-5.7/htt_rx.c
++++ b/ath10k-5.7/htt_rx.c
+@@ -3909,15 +3909,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -3970,8 +3963,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-5.8/htt_rx.c
++++ b/ath10k-5.8/htt_rx.c
+@@ -3916,15 +3916,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -3977,8 +3970,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-6.2/htt_rx.c
++++ b/ath10k-6.2/htt_rx.c
+@@ -4251,15 +4251,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -4312,8 +4305,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-6.4/htt_rx.c
++++ b/ath10k-6.4/htt_rx.c
+@@ -4251,15 +4251,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -4312,8 +4305,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-6.7/htt_rx.c
++++ b/ath10k-6.7/htt_rx.c
+@@ -4250,15 +4250,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -4311,8 +4304,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-6.9/htt_rx.c
++++ b/ath10k-6.9/htt_rx.c
+@@ -4251,15 +4251,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -4312,8 +4305,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
+--- a/ath10k-6.10/htt_rx.c
++++ b/ath10k-6.10/htt_rx.c
+@@ -4251,15 +4251,8 @@ static void ath10k_htt_fetch_peer_stats(
+ 	if (!peer || !peer->sta) {
+ 		static bool done_once = false;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				    peer_id, peer, peer ? peer->sta : NULL);
+ 			done_once = true;
+ 		}
+-		else {
+-			ath10k_dbg(ar, ATH10K_DBG_HTT,
+-				   "Invalid peer id %d or peer stats buffer, peer: %p  sta: %p\n",
+-				   peer_id, peer, peer ? peer->sta : NULL);
+-		}
+ 		goto out;
+ 	}
+ 
+@@ -4312,8 +4305,6 @@ static void ath10k_fetch_10_2_tx_stats(s
+ 	spin_lock_bh(&ar->data_lock);
+ 	peer = ath10k_peer_find_by_id(ar, peer_id);
+ 	if (!peer || !peer->sta) {
+-		ath10k_warn(ar, "Invalid peer id %d in peer stats buffer\n",
+-			    peer_id);
+ 		goto out;
+ 	}
+ 
