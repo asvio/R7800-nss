@@ -1,0 +1,95 @@
+--- a/ipq806x/include/msm_nss_gmac.h
++++ b/ipq806x/include/msm_nss_gmac.h
+@@ -317,7 +317,7 @@ struct msm_nss_gmac_platform_data {
+ 	uint32_t phy_mdio_addr;		/* MDIO address of the connected PHY */
+ 	uint32_t poll_required;		/* [0/1] Link status poll? */
+ 	uint32_t rgmii_delay;
+-	uint32_t phy_mii_type;
++	phy_interface_t phy_mii_type;
+ 	uint8_t  mac_addr[6];
+ 	int32_t forced_speed;		/* Forced speed. Values used from
+ 					   ethtool.h. 0 = Speed not forced */
+--- a/ipq806x/include/nss_gmac_dev.h
++++ b/ipq806x/include/nss_gmac_dev.h
+@@ -234,7 +234,7 @@ struct nss_gmac_dev {
+ 	uint32_t duplex_mode;	/* Duplex mode of the Phy                     */
+ 	uint32_t speed;		/* Speed of the Phy                           */
+ 	uint32_t loop_back_mode;/* Loopback status of the Phy                 */
+-	uint32_t phy_mii_type;	/* RGMII/SGMII/QSGMII                         */
++	phy_interface_t phy_mii_type;	/* RGMII/SGMII/QSGMII                         */
+ 	uint32_t rgmii_delay;	/* RGMII delay settings                       */
+ 	uint32_t pause;		/* Current flow control settings              */
+ 	uint32_t first_linkup_done;	/* when set, it indicates that first
+--- a/ipq806x/include/nss_gmac_network_interface.h
++++ b/ipq806x/include/nss_gmac_network_interface.h
+@@ -41,7 +41,7 @@ int32_t nss_gmac_xmit_frames(struct sk_b
+ int32_t nss_gmac_close(struct net_device *netdev);
+ int32_t nss_gmac_open(struct net_device *netdev);
+ int32_t nss_gmac_change_mtu(struct net_device *netdev, int32_t newmtu);
+-void nss_gmac_tx_timeout(struct net_device *netdev);
++void nss_gmac_tx_timeout(struct net_device *netdev, unsigned int txqueue);
+ 
+ /* NSS driver interface APIs */
+ void nss_gmac_receive(struct net_device *netdev, struct sk_buff *skb,
+--- a/ipq806x/nss_gmac_ctrl.c
++++ b/ipq806x/nss_gmac_ctrl.c
+@@ -995,7 +995,6 @@ static int32_t nss_gmac_of_get_pdata(str
+ 				     struct net_device *netdev,
+ 				     struct msm_nss_gmac_platform_data *gmaccfg)
+ {
+-	uint8_t *maddr = NULL;
+ 	struct nss_gmac_dev *gmacdev = (struct nss_gmac_dev *)netdev_priv(netdev);
+ 	struct resource memres_devtree = {0};
+ 
+@@ -1023,15 +1022,14 @@ static int32_t nss_gmac_of_get_pdata(str
+ 
+ 	of_property_read_u32(np, "qcom,aux-clk-freq", &gmacdev->aux_clk_freq);
+ 
+-	gmaccfg->phy_mii_type = of_get_phy_mode(np);
++	of_get_phy_mode(np, &gmaccfg->phy_mii_type);
+ 	netdev->irq = irq_of_parse_and_map(np, 0);
+ 	if (netdev->irq <= 0) {
+ 		pr_err("%s: Can't map interrupt\n", np->name);
+ 		return -EFAULT;
+ 	}
+-	maddr = (uint8_t *)of_get_mac_address(np);
+-	if (maddr)
+-		memcpy(gmaccfg->mac_addr, maddr, ETH_ALEN);
++
++	of_get_mac_address(np, gmaccfg->mac_addr);
+ 
+ 	if (of_address_to_resource(np, 0, &memres_devtree) != 0)
+ 		return -EFAULT;
+--- a/ipq806x/nss_gmac_dev.c
++++ b/ipq806x/nss_gmac_dev.c
+@@ -1526,7 +1526,7 @@ void nss_gmac_set_mac_addr(struct nss_gm
+ {
+ 	uint32_t data;
+ 
+-	netdev_dbg(gmacdev->netdev, "Set addr %02x:%02x:%02x:%02x:%02x:%02x\n",
++	netdev_info(gmacdev->netdev, "Set addr %02x:%02x:%02x:%02x:%02x:%02x\n",
+ 		      mac_addr[0], mac_addr[1], mac_addr[2],
+ 		      mac_addr[3], mac_addr[4], mac_addr[5]);
+ 
+--- a/ipq806x/nss_gmac_init.c
++++ b/ipq806x/nss_gmac_init.c
+@@ -940,6 +940,8 @@ void nss_gmac_dev_init(struct nss_gmac_d
+ 	case PHY_INTERFACE_MODE_QSGMII:
+ 		div = clk_div_qsgmii(gmacdev);
+ 		break;
++	default:
++		netdev_err(gmacdev->netdev, "NO interface defined!\n");
+ 	}
+ 	val = nss_gmac_read_reg(nss_base, NSS_ETH_CLK_DIV0);
+ 	val &= ~GMACn_CLK_DIV(id, GMACn_CLK_DIV_SIZE);
+--- a/ipq806x/nss_gmac_tx_rx_offload.c
++++ b/ipq806x/nss_gmac_tx_rx_offload.c
+@@ -1046,7 +1046,7 @@ int nss_gmac_close(struct net_device *ne
+  * @param[in] pointer to net_device structure
+  * @return void.
+  */
+-void nss_gmac_tx_timeout(struct net_device *netdev)
++void nss_gmac_tx_timeout(struct net_device *netdev, unsigned int txqueue)
+ {
+ 	struct nss_gmac_dev *gmacdev = (struct nss_gmac_dev *)netdev_priv(netdev);
+ 	BUG_ON(gmacdev == NULL);

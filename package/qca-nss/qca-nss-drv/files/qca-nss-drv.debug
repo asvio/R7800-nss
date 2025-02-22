@@ -1,0 +1,4 @@
+#!/bin/sh /sbin/sysdebug
+#
+log cat /sys/kernel/debug/qca-nss-drv/stats/cpu_load_ubi
+log cat $(grep -lE "= [1-9]" /sys/kernel/debug/qca-nss-drv/stats/* 2>/dev/null )

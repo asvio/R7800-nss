@@ -1,0 +1,51 @@
+From 7d7289cbe10bac309db3cc792f2bb13b3befdc07 Mon Sep 17 00:00:00 2001
+From: Amruth S <quic_amrus@quicinc.com>
+Date: Tue, 5 Dec 2023 21:47:37 -0800
+Subject: [PATCH] [qca-nss-ecm]: Fix_dev_put issue for 6.x kernel in ecm module
+
+Explicitly hold netdev refs for 6.1 and above kernels. The API
+doesn't hold it in these kernels.
+
+Signed-off-by: Amruth S <quic_amrus@quicinc.com>
+Change-Id: I54594dae664610e2a5703b71c1430e325d04aeaa
+---
+ ecm_interface.c                  | 2 ++
+ frontends/ecm_front_end_common.c | 2 ++
+ 2 files changed, 4 insertions(+)
+
+--- a/ecm_interface.c
++++ b/ecm_interface.c
+@@ -342,6 +342,7 @@ static struct net_device *ecm_interface_
+ 	dev = (struct net_device *)ipv6_dev_find(&init_net, &addr6, 1);
+ #else
+ 	dev = (struct net_device *)ipv6_dev_find(&init_net, &addr6, NULL);
++	dev_hold(dev);
+ #endif
+ 	return dev;
+ }
+@@ -805,6 +806,7 @@ static bool ecm_interface_mac_addr_get_i
+ 	local_dev = ipv6_dev_find(&init_net, &daddr, 1);
+ #else
+ 	local_dev = ipv6_dev_find(&init_net, &daddr, NULL);
++	dev_hold(local_dev);
+ #endif
+ 	if (local_dev) {
+ 		DEBUG_TRACE("%pi6 is a local address\n", &daddr);
+--- a/frontends/ecm_front_end_common.c
++++ b/frontends/ecm_front_end_common.c
+@@ -611,6 +611,7 @@ bool ecm_front_end_gre_proto_is_accel_al
+ 		dev = ipv6_dev_find(&init_net, &(orig_tuple->src.u3.in6), 1);
+ #else
+ 		dev = ipv6_dev_find(&init_net, &(orig_tuple->src.u3.in6), NULL);
++		dev_hold(dev);
+ #endif
+ 		if (dev) {
+ 			/*
+@@ -625,6 +626,7 @@ bool ecm_front_end_gre_proto_is_accel_al
+ 		dev = ipv6_dev_find(&init_net, &(orig_tuple->dst.u3.in6), 1);
+ #else
+ 		dev = ipv6_dev_find(&init_net, &(orig_tuple->dst.u3.in6), NULL);
++		dev_hold(dev);
+ #endif
+ 		if (dev) {
+ 			/*
