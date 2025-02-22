@@ -1,0 +1,321 @@
+--- a/ath10k-4.13/mac.c
++++ b/ath10k-4.13/mac.c
+@@ -7501,8 +7501,6 @@ static void ath10k_flush(struct ieee8021
+ 		vid = arvif->vdev_id;
+ 	}
+ 
+-	ath10k_dbg(ar, ATH10K_DBG_MAC, "mac flush vdev %d drop %d queues 0x%x\n",
+-		   arvif ? arvif->vdev_id : -1, drop, queues);
+ 
+ 	/* mac80211 doesn't care if we really xmit queued frames or not
+ 	 * we'll collect those frames either way if we stop/delete vdevs
+--- a/ath10k-4.16/mac.c
++++ b/ath10k-4.16/mac.c
+@@ -7681,8 +7681,6 @@ static void ath10k_flush(struct ieee8021
+ 		vid = arvif->vdev_id;
+ 	}
+ 
+-	ath10k_dbg(ar, ATH10K_DBG_MAC, "mac flush vdev %d drop %d queues 0x%x\n",
+-		   arvif ? arvif->vdev_id : -1, drop, queues);
+ 
+ 	/* mac80211 doesn't care if we really xmit queued frames or not
+ 	 * we'll collect those frames either way if we stop/delete vdevs
+--- a/ath10k-4.19/mac.c
++++ b/ath10k-4.19/mac.c
+@@ -7822,8 +7822,6 @@ static void ath10k_flush(struct ieee8021
+ 		vid = arvif->vdev_id;
+ 	}
+ 
+-	ath10k_dbg(ar, ATH10K_DBG_MAC, "mac flush vdev %d drop %d queues 0x%x\n",
+-		   vid, drop, queues);
+ 
+ 	/* mac80211 doesn't care if we really xmit queued frames or not
+ 	 * we'll collect those frames either way if we stop/delete vdevs
+--- a/ath10k-4.20/mac.c
++++ b/ath10k-4.20/mac.c
+@@ -7936,12 +7936,6 @@ static void ath10k_flush(struct ieee8021
+ 	if (vif) {
+ 		arvif = (void *)vif->drv_priv;
+ 		vid = arvif->vdev_id;
+-		ath10k_info(ar, "mac flush vdev %d drop %d queues 0x%x ar->paused: 0x%lx  arvif->paused: 0x%lx\n",
+-			    arvif->vdev_id, drop, queues, ar->tx_paused, arvif->tx_paused);
+-	}
+-	else {
+-		ath10k_info(ar, "mac flush null vif, drop %d queues 0x%x\n",
+-			    drop, queues);
+ 	}
+ 
+ 
+--- a/ath10k-4.4/mac.c
++++ b/ath10k-4.4/mac.c
+@@ -7007,8 +7007,6 @@ static void ath10k_flush(struct ieee8021
+ 		vid = arvif->vdev_id;
+ 	}
+ 
+-	ath10k_dbg(ar, ATH10K_DBG_MAC, "mac flush vdev %d drop %d queues 0x%x\n",
+-		   arvif ? arvif->vdev_id : -1, drop, queues);
+ 
+ 	/* mac80211 doesn't care if we really xmit queued frames or not
+ 	 * we'll collect those frames either way if we stop/delete vdevs */
+--- a/ath10k-4.9/mac.c
++++ b/ath10k-4.9/mac.c
+@@ -7399,8 +7399,6 @@ static void ath10k_flush(struct ieee8021
+ 		vid = arvif->vdev_id;
+ 	}
+ 
+-	ath10k_dbg(ar, ATH10K_DBG_MAC, "mac flush vdev %d drop %d queues 0x%x\n",
+-		   arvif ? arvif->vdev_id : -1, drop, queues);
+ 
+ 	/* mac80211 doesn't care if we really xmit queued frames or not
+ 	 * we'll collect those frames either way if we stop/delete vdevs */
+--- a/ath10k-5.10/mac.c
++++ b/ath10k-5.10/mac.c
+@@ -8859,12 +8859,6 @@ static void ath10k_flush(struct ieee8021
+         if (vif) {
+                 arvif = (void *)vif->drv_priv;
+                 vid = arvif->vdev_id;
+-                ath10k_info(ar, "mac flush vdev %d drop %d queues 0x%x ar->paused: 0x%lx  arvif->paused: 0x%lx\n",
+-                            arvif->vdev_id, drop, queues, ar->tx_paused, arvif->tx_paused);
+-        }
+-        else {
+-                ath10k_info(ar, "mac flush null vif, drop %d queues 0x%x\n",
+-                            drop, queues);
+         }
+ 
+ 
+--- a/ath10k-5.11/mac.c
++++ b/ath10k-5.11/mac.c
+@@ -8859,12 +8859,6 @@ static void ath10k_flush(struct ieee8021
+         if (vif) {
+                 arvif = (void *)vif->drv_priv;
+                 vid = arvif->vdev_id;
+-                ath10k_info(ar, "mac flush vdev %d drop %d queues 0x%x ar->paused: 0x%lx  arvif->paused: 0x%lx\n",
+-                            arvif->vdev_id, drop, queues, ar->tx_paused, arvif->tx_paused);
+-        }
+-        else {
+-                ath10k_info(ar, "mac flush null vif, drop %d queues 0x%x\n",
+-                            drop, queues);
+         }
+ 
+ 
+--- a/ath10k-5.12/mac.c
++++ b/ath10k-5.12/mac.c
+@@ -8967,12 +8967,6 @@ static void ath10k_flush(struct ieee8021
+         if (vif) {
+                 arvif = (void *)vif->drv_priv;
+                 vid = arvif->vdev_id;
+-                ath10k_info(ar, "mac flush vdev %d drop %d queues 0x%x ar->paused: 0x%lx  arvif->paused: 0x%lx\n",
+-                            arvif->vdev_id, drop, queues, ar->tx_paused, arvif->tx_paused);
+-        }
+-        else {
+-                ath10k_info(ar, "mac flush null vif, drop %d queues 0x%x\n",
+-                            drop, queues);
+         }
+ 
+ 
+--- a/ath10k-5.13/mac.c
++++ b/ath10k-5.13/mac.c
+@@ -8970,12 +8970,6 @@ static void ath10k_flush(struct ieee8021
+         if (vif) {
+                 arvif = (void *)vif->drv_priv;
+                 vid = arvif->vdev_id;
+-                ath10k_info(ar, "mac flush vdev %d drop %d queues 0x%x ar->paused: 0x%lx  arvif->paused: 0x%lx\n",
+-                            arvif->vdev_id, drop, queues, ar->tx_paused, arvif->tx_paused);
+-        }
+-        else {
+-                ath10k_info(ar, "mac flush null vif, drop %d queues 0x%x\n",
+-                            drop, queues);
+         }
+ 
+ 
+--- a/ath10k-5.15/mac.c
++++ b/ath10k-5.15/mac.c
+@@ -8993,12 +8993,6 @@ static void ath10k_flush(struct ieee8021
+         if (vif) {
+                 arvif = (void *)vif->drv_priv;
+                 vid = arvif->vdev_id;
+-                ath10k_info(ar, "mac flush vdev %d drop %d queues 0x%x ar->paused: 0x%lx  arvif->paused: 0x%lx\n",
+-                            arvif->vdev_id, drop, queues, ar->tx_paused, arvif->tx_paused);
+-        }
+-        else {
+-                ath10k_info(ar, "mac flush null vif, drop %d queues 0x%x\n",
+-                            drop, queues);
+         }
+ 
+ 
+--- a/ath10k-5.17/mac.c
++++ b/ath10k-5.17/mac.c
+@@ -9010,12 +9010,6 @@ static void ath10k_flush(struct ieee8021
+         if (vif) {
+                 arvif = (void *)vif->drv_priv;
+                 vid = arvif->vdev_id;
+-                ath10k_info(ar, "mac flush vdev %d drop %d queues 0x%x ar->paused: 0x%lx  arvif->paused: 0x%lx\n",
+-                            arvif->vdev_id, drop, queues, ar->tx_paused, arvif->tx_paused);
+-        }
+-        else {
+-                ath10k_info(ar, "mac flush null vif, drop %d queues 0x%x\n",
+-                            drop, queues);
+         }
+ 
+ 
+--- a/ath10k-5.19/mac.c
++++ b/ath10k-5.19/mac.c
+@@ -9020,12 +9020,6 @@ static void ath10k_flush(struct ieee8021
+         if (vif) {
+                 arvif = (void *)vif->drv_priv;
+                 vid = arvif->vdev_id;
+-                ath10k_info(ar, "mac flush vdev %d drop %d queues 0x%x ar->paused: 0x%lx  arvif->paused: 0x%lx\n",
+-                            arvif->vdev_id, drop, queues, ar->tx_paused, arvif->tx_paused);
+-        }
+-        else {
+-                ath10k_info(ar, "mac flush null vif, drop %d queues 0x%x\n",
+-                            drop, queues);
+         }
+ 
+ 
+--- a/ath10k-5.2/mac.c
++++ b/ath10k-5.2/mac.c
+@@ -7996,12 +7996,6 @@ static void ath10k_flush(struct ieee8021
+ 	if (vif) {
+ 		arvif = (void *)vif->drv_priv;
+ 		vid = arvif->vdev_id;
+-		ath10k_info(ar, "mac flush vdev %d drop %d queues 0x%x ar->paused: 0x%lx  arvif->paused: 0x%lx\n",
+-			    arvif->vdev_id, drop, queues, ar->tx_paused, arvif->tx_paused);
+-	}
+-	else {
+-		ath10k_info(ar, "mac flush null vif, drop %d queues 0x%x\n",
+-			    drop, queues);
+ 	}
+ 
+ 
+--- a/ath10k-5.4/mac.c
++++ b/ath10k-5.4/mac.c
+@@ -8117,12 +8117,6 @@ static void ath10k_flush(struct ieee8021
+ 	if (vif) {
+ 		arvif = (void *)vif->drv_priv;
+ 		vid = arvif->vdev_id;
+-		ath10k_info(ar, "mac flush vdev %d drop %d queues 0x%x ar->paused: 0x%lx  arvif->paused: 0x%lx\n",
+-			    arvif->vdev_id, drop, queues, ar->tx_paused, arvif->tx_paused);
+-	}
+-	else {
+-		ath10k_info(ar, "mac flush null vif, drop %d queues 0x%x\n",
+-			    drop, queues);
+ 	}
+ 
+ 
+--- a/ath10k-5.7/mac.c
++++ b/ath10k-5.7/mac.c
+@@ -8181,12 +8181,6 @@ static void ath10k_flush(struct ieee8021
+         if (vif) {
+                 arvif = (void *)vif->drv_priv;
+                 vid = arvif->vdev_id;
+-                ath10k_info(ar, "mac flush vdev %d drop %d queues 0x%x ar->paused: 0x%lx  arvif->paused: 0x%lx\n",
+-                            arvif->vdev_id, drop, queues, ar->tx_paused, arvif->tx_paused);
+-        }
+-        else {
+-                ath10k_info(ar, "mac flush null vif, drop %d queues 0x%x\n",
+-                            drop, queues);
+         }
+ 
+ 
+--- a/ath10k-5.8/mac.c
++++ b/ath10k-5.8/mac.c
+@@ -8207,12 +8207,6 @@ static void ath10k_flush(struct ieee8021
+         if (vif) {
+                 arvif = (void *)vif->drv_priv;
+                 vid = arvif->vdev_id;
+-                ath10k_info(ar, "mac flush vdev %d drop %d queues 0x%x ar->paused: 0x%lx  arvif->paused: 0x%lx\n",
+-                            arvif->vdev_id, drop, queues, ar->tx_paused, arvif->tx_paused);
+-        }
+-        else {
+-                ath10k_info(ar, "mac flush null vif, drop %d queues 0x%x\n",
+-                            drop, queues);
+         }
+ 
+ 
+--- a/ath10k-6.2/mac.c
++++ b/ath10k-6.2/mac.c
+@@ -9056,12 +9056,6 @@ static void ath10k_flush(struct ieee8021
+         if (vif) {
+                 arvif = (void *)vif->drv_priv;
+                 vid = arvif->vdev_id;
+-                ath10k_info(ar, "mac flush vdev %d drop %d queues 0x%x ar->paused: 0x%lx  arvif->paused: 0x%lx\n",
+-                            arvif->vdev_id, drop, queues, ar->tx_paused, arvif->tx_paused);
+-        }
+-        else {
+-                ath10k_info(ar, "mac flush null vif, drop %d queues 0x%x\n",
+-                            drop, queues);
+         }
+ 
+ 
+--- a/ath10k-6.4/mac.c
++++ b/ath10k-6.4/mac.c
+@@ -9055,12 +9055,6 @@ static void ath10k_flush(struct ieee8021
+         if (vif) {
+                 arvif = (void *)vif->drv_priv;
+                 vid = arvif->vdev_id;
+-                ath10k_info(ar, "mac flush vdev %d drop %d queues 0x%x ar->paused: 0x%lx  arvif->paused: 0x%lx\n",
+-                            arvif->vdev_id, drop, queues, ar->tx_paused, arvif->tx_paused);
+-        }
+-        else {
+-                ath10k_info(ar, "mac flush null vif, drop %d queues 0x%x\n",
+-                            drop, queues);
+         }
+ 
+ 
+--- a/ath10k-6.7/mac.c
++++ b/ath10k-6.7/mac.c
+@@ -9054,12 +9054,6 @@ static void ath10k_flush(struct ieee8021
+         if (vif) {
+                 arvif = (void *)vif->drv_priv;
+                 vid = arvif->vdev_id;
+-                ath10k_info(ar, "mac flush vdev %d drop %d queues 0x%x ar->paused: 0x%lx  arvif->paused: 0x%lx\n",
+-                            arvif->vdev_id, drop, queues, ar->tx_paused, arvif->tx_paused);
+-        }
+-        else {
+-                ath10k_info(ar, "mac flush null vif, drop %d queues 0x%x\n",
+-                            drop, queues);
+         }
+ 
+ 
+--- a/ath10k-6.9/mac.c
++++ b/ath10k-6.9/mac.c
+@@ -9059,12 +9059,6 @@ static void ath10k_flush(struct ieee8021
+         if (vif) {
+                 arvif = (void *)vif->drv_priv;
+                 vid = arvif->vdev_id;
+-                ath10k_info(ar, "mac flush vdev %d drop %d queues 0x%x ar->paused: 0x%lx  arvif->paused: 0x%lx\n",
+-                            arvif->vdev_id, drop, queues, ar->tx_paused, arvif->tx_paused);
+-        }
+-        else {
+-                ath10k_info(ar, "mac flush null vif, drop %d queues 0x%x\n",
+-                            drop, queues);
+         }
+ 
+ 
+--- a/ath10k-6.10/mac.c
++++ b/ath10k-6.10/mac.c
+@@ -9060,12 +9060,6 @@ static void ath10k_flush(struct ieee8021
+         if (vif) {
+                 arvif = (void *)vif->drv_priv;
+                 vid = arvif->vdev_id;
+-                ath10k_info(ar, "mac flush vdev %d drop %d queues 0x%x ar->paused: 0x%lx  arvif->paused: 0x%lx\n",
+-                            arvif->vdev_id, drop, queues, ar->tx_paused, arvif->tx_paused);
+-        }
+-        else {
+-                ath10k_info(ar, "mac flush null vif, drop %d queues 0x%x\n",
+-                            drop, queues);
+         }
+ 
+ 
+--- a/ath10k/mac.c
++++ b/ath10k/mac.c
+@@ -7145,8 +7145,6 @@ static void ath10k_flush(struct ieee8021
+ 		vid = arvif->vdev_id;
+ 	}
+ 
+-	ath10k_dbg(ar, ATH10K_DBG_MAC, "mac flush vdev %d drop %d queues 0x%x\n",
+-		   arvif ? arvif->vdev_id : -1, drop, queues);
+ 
+ 	/* mac80211 doesn't care if we really xmit queued frames or not
+ 	 * we'll collect those frames either way if we stop/delete vdevs */
