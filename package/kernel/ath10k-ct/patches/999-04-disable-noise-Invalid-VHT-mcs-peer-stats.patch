@@ -1,0 +1,30 @@
+--- a/ath10k-6.10/htt_rx.c
++++ b/ath10k-6.10/htt_rx.c
+@@ -4102,7 +4102,6 @@ ath10k_update_per_peer_tx_stats(struct a
+ 	if (txrate.flags == WMI_RATE_PREAMBLE_VHT && txrate.mcs > 9) {
+ 		static bool done_once = 0;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid VHT mcs %hhd peer stats",  txrate.mcs);
+ 			done_once = true;
+ 		}
+ 		else {
+--- a/ath10k-6.7/htt_rx.c
++++ b/ath10k-6.7/htt_rx.c
+@@ -4101,7 +4101,6 @@ ath10k_update_per_peer_tx_stats(struct a
+ 	if (txrate.flags == WMI_RATE_PREAMBLE_VHT && txrate.mcs > 9) {
+ 		static bool done_once = 0;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid VHT mcs %hhd peer stats",  txrate.mcs);
+ 			done_once = true;
+ 		}
+ 		else {
+--- a/ath10k-6.9/htt_rx.c
++++ b/ath10k-6.9/htt_rx.c
+@@ -4102,7 +4102,6 @@ ath10k_update_per_peer_tx_stats(struct a
+ 	if (txrate.flags == WMI_RATE_PREAMBLE_VHT && txrate.mcs > 9) {
+ 		static bool done_once = 0;
+ 		if (!done_once) {
+-			ath10k_warn(ar, "Invalid VHT mcs %hhd peer stats",  txrate.mcs);
+ 			done_once = true;
+ 		}
+ 		else {
