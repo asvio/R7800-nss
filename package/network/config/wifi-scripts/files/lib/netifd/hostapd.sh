@@ -639,7 +639,7 @@ hostapd_set_bss_options() {
 
 	append bss_conf "ctrl_interface=/var/run/hostapd"
 	if [ "$isolate" -gt 0 ]; then
-		append bss_conf "ap_isolate=$isolate" "$N"
+		append bss_conf "ap_isolate=0" "$N"
 	fi
 	if [ "$maxassoc" -gt 0 ]; then
 		append bss_conf "max_num_sta=$maxassoc" "$N"
