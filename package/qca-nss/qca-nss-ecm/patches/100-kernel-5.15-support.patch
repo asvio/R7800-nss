@@ -1,0 +1,1418 @@
+--- a/Makefile
++++ b/Makefile
+@@ -17,9 +17,7 @@
+ # ###################################################
+ # Makefile for the QCA NSS ECM
+ # ###################################################
+-ifneq ($(findstring 6.1., $(KERNELVERSION)),)
+-include $(obj)/Makefile_61.mk
+-else
++
+ ifeq ($(ECM_FRONT_END_SFE_ENABLE), y)
+ obj-m += examples/ecm_sfe_l2.o
+ endif
+@@ -76,12 +74,12 @@ ecm-$(ECM_NON_PORTED_SUPPORT_ENABLE) +=
+ ifeq ($(ECM_NON_PORTED_SUPPORT_ENABLE), y)
+ ecm-$(ECM_IPV6_ENABLE) += frontends/cmn/ecm_non_ported_ipv6.o
+ endif
+-
+-#SFE Multicast is enabled in case NSS disabled
++ifeq ($(ECM_FRONT_END_NSS_ENABLE), y)
+ ecm-$(ECM_MULTICAST_ENABLE) += frontends/cmn/ecm_multicast_ipv4.o
+ ifeq ($(ECM_IPV6_ENABLE), y)
+ ecm-$(ECM_MULTICAST_ENABLE) += frontends/cmn/ecm_multicast_ipv6.o
+ endif
++endif
+ 
+ # #############################################################################
+ # Define ECM_FRONT_END_NSS_ENABLE=y in order to select
+@@ -111,11 +109,6 @@ ecm-$(ECM_FRONT_END_PPE_ENABLE) += front
+ ccflags-$(ECM_FRONT_END_PPE_ENABLE) += -DECM_FRONT_END_PPE_ENABLE
+ 
+ # #############################################################################
+-# Define ECM_FRONT_END_PPE_QOS_ENABLE=y in order to enable PPE QoS
+-# #############################################################################
+-ccflags-$(ECM_FRONT_END_PPE_QOS_ENABLE) += -DECM_FRONT_END_PPE_QOS_ENABLE
+-
+-# #############################################################################
+ # Define ECM_FRONT_END_CONN_LIMIT_ENABLE=y in order to limit accelerated
+ # connections for low-memory profiles.
+ # #############################################################################
+@@ -132,10 +125,18 @@ ccflags-$(ECM_INTERFACE_BOND_ENABLE) +=
+ # Define ECM_INTERFACE_PPPOE_ENABLE=y in order
+ # to enable support for PPPoE acceleration.
+ # #############################################################################
+-ECM_INTERFACE_PPPOE_ENABLE=y
++ifndef $(ECM_INTERFACE_PPPOE_ENABLE)
++	ECM_INTERFACE_PPPOE_ENABLE=y
++endif
+ ccflags-$(ECM_INTERFACE_PPPOE_ENABLE) += -DECM_INTERFACE_PPPOE_ENABLE
+ 
+ # #############################################################################
++# Define ECM_INTERFACE_L2TPV2_PPTP_ENABLE=y in order
++# to enable support for l2tpv2 or PPTP detection.
++# #############################################################################
++ccflags-$(ECM_INTERFACE_L2TPV2_PPTP_ENABLE) += -DECM_INTERFACE_L2TPV2_PPTP_ENABLE
++
++# #############################################################################
+ # Define ECM_INTERFACE_L2TPV2_ENABLE=y in order
+ # to enable support for l2tpv2 acceleration.
+ # #############################################################################
+@@ -162,6 +163,12 @@ endif
+ ccflags-$(ECM_INTERFACE_PPP_ENABLE) += -DECM_INTERFACE_PPP_ENABLE
+ 
+ # #############################################################################
++# Define ECM_INTERFACE_GRE_ENABLE=y in order
++# to enable support for GRE detection.
++# #############################################################################
++ccflags-$(ECM_INTERFACE_GRE_ENABLE) += -DECM_INTERFACE_GRE_ENABLE
++
++# #############################################################################
+ # Define ECM_INTERFACE_GRE_TAP_ENABLE=y in order
+ # to enable support for GRE TAP interface.
+ # #############################################################################
+@@ -212,23 +219,14 @@ ccflags-$(ECM_IPV6_ENABLE) += -DECM_IPV6
+ 
+ # #############################################################################
+ # Define ECM_MULTICAST_ENABLE=y in order to enable support for ECM Multicast
+-# NSS is enabled, using NSS multicast acceleration, otherwise using SFE
+-# multicast acceleration.
+ # #############################################################################
+-
+-ecm-$(ECM_MULTICAST_ENABLE) += ecm_db/ecm_db_multicast.o
+-ccflags-$(ECM_MULTICAST_ENABLE) += -DECM_MULTICAST_ENABLE
+-
+ ifeq ($(ECM_FRONT_END_NSS_ENABLE), y)
+ ecm-$(ECM_MULTICAST_ENABLE) += frontends/nss/ecm_nss_multicast_ipv4.o
+ ifeq ($(ECM_IPV6_ENABLE), y)
+ ecm-$(ECM_MULTICAST_ENABLE) += frontends/nss/ecm_nss_multicast_ipv6.o
+ endif
+-else
+-ecm-$(ECM_MULTICAST_ENABLE) += frontends/sfe/ecm_sfe_multicast_ipv4.o
+-ifeq ($(ECM_IPV6_ENABLE), y)
+-ecm-$(ECM_MULTICAST_ENABLE) += frontends/sfe/ecm_sfe_multicast_ipv6.o
+-endif
++ecm-$(ECM_MULTICAST_ENABLE) += ecm_db/ecm_db_multicast.o
++ccflags-$(ECM_MULTICAST_ENABLE) += -DECM_MULTICAST_ENABLE
+ endif
+ 
+ # #############################################################################
+@@ -244,7 +242,9 @@ ccflags-$(ECM_INTERFACE_OVS_BRIDGE_ENABL
+ # #############################################################################
+ # Define ECM_INTERFACE_VLAN_ENABLE=y in order to enable support for VLAN
+ # #############################################################################
+-ECM_INTERFACE_VLAN_ENABLE=y
++ifndef $(ECM_INTERFACE_VLAN_ENABLE)
++	ECM_INTERFACE_VLAN_ENABLE=y
++endif
+ ccflags-$(ECM_INTERFACE_VLAN_ENABLE) += -DECM_INTERFACE_VLAN_ENABLE
+ 
+ # #############################################################################
+@@ -258,8 +258,7 @@ ccflags-$(ECM_INTERFACE_MACVLAN_ENABLE)
+ ccflags-$(ECM_INTERFACE_IPSEC_ENABLE) += -DECM_INTERFACE_IPSEC_ENABLE
+ 
+ ECM_INTERFACE_IPSEC_GLUE_LAYER_SUPPORT_ENABLE=n
+-ifeq ($(SoC),$(filter $(SoC), ipq807x ipq807x_64 ipq60xx ipq60xx_64 ipq50xx \
+-	     ipq50xx_64 ipq95xx_32 ipq95xx ipq53xx_32 ipq53xx))
++ifeq ($(SoC),$(filter $(SoC), ipq807x ipq807x_64 ipq60xx ipq60xx_64 ipq50xx ipq50xx_64 ipq95xx_32 ipq95xx))
+ ECM_INTERFACE_IPSEC_GLUE_LAYER_SUPPORT_ENABLE=$(ECM_INTERFACE_IPSEC_ENABLE)
+ ccflags-$(ECM_INTERFACE_IPSEC_GLUE_LAYER_SUPPORT_ENABLE) += -DECM_INTERFACE_IPSEC_GLUE_LAYER_SUPPORT_ENABLE
+ endif
+@@ -286,7 +285,9 @@ ccflags-$(ECM_CLASSIFIER_OVS_ENABLE) +=
+ # #############################################################################
+ # Define ECM_CLASSIFIER_MARK_ENABLE=y in order to enable mark classifier.
+ # #############################################################################
+-ECM_CLASSIFIER_MARK_ENABLE=y
++ifndef $(ECM_CLASSIFIER_MARK_ENABLE)
++	ECM_CLASSIFIER_MARK_ENABLE=y
++endif
+ ecm-$(ECM_CLASSIFIER_MARK_ENABLE) += ecm_classifier_mark.o
+ ccflags-$(ECM_CLASSIFIER_MARK_ENABLE) += -DECM_CLASSIFIER_MARK_ENABLE
+ 
+@@ -310,21 +311,14 @@ ccflags-$(ECM_CLASSIFIER_NL_ENABLE) += -
+ # #############################################################################
+ # Define ECM_CLASSIFIER_DSCP_ENABLE=y in order to enable DSCP classifier.
+ # #############################################################################
+-ECM_CLASSIFIER_DSCP_ENABLE=y
++ifndef $(ECM_CLASSIFIER_DSCP_ENABLE)
++	ECM_CLASSIFIER_DSCP_ENABLE=y
++endif
+ ecm-$(ECM_CLASSIFIER_DSCP_ENABLE) += ecm_classifier_dscp.o
+ ccflags-$(ECM_CLASSIFIER_DSCP_ENABLE) += -DECM_CLASSIFIER_DSCP_ENABLE
+ ccflags-$(ECM_CLASSIFIER_DSCP_IGS) += -DECM_CLASSIFIER_DSCP_IGS
+ 
+ # #############################################################################
+-# Define ECM_CLASSIFIER_HYFI_ENABLE=y in order to enable
+-# the Hy-Fi classifier in ECM. Currently disabled until the integration
+-# with Hy-Fi is completed.
+-# #############################################################################
+-#
+-ecm-$(ECM_CLASSIFIER_HYFI_ENABLE) += ecm_classifier_hyfi.o
+-ccflags-$(ECM_CLASSIFIER_HYFI_ENABLE) += -DECM_CLASSIFIER_HYFI_ENABLE
+-
+-# #############################################################################
+ # Define ECM_CLASSIFIER_PCC_ENABLE=y in order to enable
+ # the Parental Controls subsystem classifier in ECM. Currently disabled until
+ # customers require it / if they need to integrate their Parental Controls with it.
+@@ -334,6 +328,15 @@ ecm-$(ECM_CLASSIFIER_PCC_ENABLE) += ecm_
+ ccflags-$(ECM_CLASSIFIER_PCC_ENABLE) += -DECM_CLASSIFIER_PCC_ENABLE
+ 
+ # #############################################################################
++# Define ECM_CLASSIFIER_HYFI_ENABLE=y in order to enable
++# the Hy-Fi classifier in ECM. Currently disabled until the integration
++# with Hy-Fi is completed.
++# #############################################################################
++#
++ecm-$(ECM_CLASSIFIER_HYFI_ENABLE) += ecm_classifier_hyfi.o
++ccflags-$(ECM_CLASSIFIER_HYFI_ENABLE) += -DECM_CLASSIFIER_HYFI_ENABLE
++
++# #############################################################################
+ # Define ECM_CLASSIFIER_EMESH_ENABLE=y in order to enable E-Mesh classifier.
+ # #############################################################################
+ ecm-$(ECM_CLASSIFIER_EMESH_ENABLE) += ecm_classifier_emesh.o
+@@ -370,27 +373,36 @@ ccflags-$(ECM_NON_PORTED_SUPPORT_ENABLE)
+ # #############################################################################
+ # Define ECM_STATE_OUTPUT_ENABLE=y to support XML state output
+ # #############################################################################
+-ECM_STATE_OUTPUT_ENABLE=y
++ifndef $(ECM_STATE_OUTPUT_ENABLE)
++	ECM_STATE_OUTPUT_ENABLE=y
++endif
+ ecm-$(ECM_STATE_OUTPUT_ENABLE) += ecm_state.o
+ ccflags-$(ECM_STATE_OUTPUT_ENABLE) += -DECM_STATE_OUTPUT_ENABLE
+ 
+ # #############################################################################
+ # Define ECM_DB_ADVANCED_STATS_ENABLE to support XML state output
+ # #############################################################################
+-ECM_DB_ADVANCED_STATS_ENABLE=y
++ifndef $(ECM_DB_ADVANCED_STATS_ENABLE)
++	ECM_DB_ADVANCED_STATS_ENABLE=y
++endif
+ ccflags-$(ECM_DB_ADVANCED_STATS_ENABLE) += -DECM_DB_ADVANCED_STATS_ENABLE
+ 
+ # #############################################################################
+ # Define ECM_DB_CONNECTION_CROSS_REFERENCING_ENABLE=y in order to enable
+ # the database to track relationships between objects.
+ # #############################################################################
+-ECM_DB_CONNECTION_CROSS_REFERENCING_ENABLE=y
++ifndef $(ECM_DB_CONNECTION_CROSS_REFERENCING_ENABLE)
++	ECM_DB_CONNECTION_CROSS_REFERENCING_ENABLE=y
++endif
+ ccflags-$(ECM_DB_CONNECTION_CROSS_REFERENCING_ENABLE) += -DECM_DB_XREF_ENABLE
+ 
+ # #############################################################################
+ # Define ECM_TRACKER_DPI_SUPPORT_ENABLE=y in order to enable support for
+ # deep packet inspection and tracking of data with the trackers.
+ # #############################################################################
++ifndef $(ECM_TRACKER_DPI_SUPPORT_ENABLE)
++	ECM_TRACKER_DPI_SUPPORT_ENABLE=y
++endif
+ ccflags-$(ECM_TRACKER_DPI_SUPPORT_ENABLE) += -DECM_TRACKER_DPI_SUPPORT_ENABLE
+ 
+ # #############################################################################
+@@ -398,14 +410,18 @@ ccflags-$(ECM_TRACKER_DPI_SUPPORT_ENABLE
+ # support for the database keeping lists of connections that are assigned
+ # on a per TYPE of classifier basis.
+ # #############################################################################
+-ECM_DB_CLASSIFIER_TYPE_ASSIGNMENTS_TRACK_ENABLE=y
++ifndef $(ECM_DB_CLASSIFIER_TYPE_ASSIGNMENTS_TRACK_ENABLE)
++	ECM_DB_CLASSIFIER_TYPE_ASSIGNMENTS_TRACK_ENABLE=y
++endif
+ ccflags-$(ECM_DB_CLASSIFIER_TYPE_ASSIGNMENTS_TRACK_ENABLE) += -DECM_DB_CTA_TRACK_ENABLE
+ 
+ # #############################################################################
+ # Define ECM_BAND_STEERING_ENABLE=y in order to enable
+ # band steering feature.
+ # #############################################################################
+-ECM_BAND_STEERING_ENABLE=y
++ifndef $(ECM_BAND_STEERING_ENABLE)
++	ECM_BAND_STEERING_ENABLE=y
++endif
+ ccflags-$(ECM_BAND_STEERING_ENABLE) += -DECM_BAND_STEERING_ENABLE
+ 
+ # #############################################################################
+@@ -415,17 +431,6 @@ ccflags-$(ECM_BAND_STEERING_ENABLE) += -
+ ccflags-$(ECM_INTERFACE_OVPN_ENABLE) += -DECM_INTERFACE_OVPN_ENABLE
+ 
+ # #############################################################################
+-# Define ECM_BRIDGE_VLAN_FILTERING_ENABLE=y in order
+-# to enable support for bridge VLAN filter acceleration.
+-# #############################################################################
+-ccflags-$(ECM_BRIDGE_VLAN_FILTERING_ENABLE) += -DECM_BRIDGE_VLAN_FILTERING_ENABLE
+-
+-# #############################################################################
+-# Define ECM_FRONT_END_FSE_ENABLE=y in order to enable FSE rule push from ECM frontend.
+-# #############################################################################
+-ccflags-$(ECM_FRONT_END_FSE_ENABLE) += -DECM_FRONT_END_FSE_ENABLE
+-
+-# #############################################################################
+ # Debug flags, set these to = 0 if you want to disable all debugging for that
+ # file.
+ # By turning off debugs you gain maximum ECM performance.
+@@ -466,11 +471,9 @@ ccflags-y += -DECM_SFE_COMMON_DEBUG_LEVE
+ ccflags-y += -DECM_SFE_IPV4_DEBUG_LEVEL=1
+ ccflags-y += -DECM_SFE_PORTED_IPV4_DEBUG_LEVEL=1
+ ccflags-y += -DECM_SFE_NON_PORTED_IPV4_DEBUG_LEVEL=1
+-ccflags-y += -DECM_SFE_MULTICAST_IPV4_DEBUG_LEVEL=1
+ ccflags-y += -DECM_SFE_IPV6_DEBUG_LEVEL=1
+ ccflags-y += -DECM_SFE_PORTED_IPV6_DEBUG_LEVEL=1
+ ccflags-y += -DECM_SFE_NON_PORTED_IPV6_DEBUG_LEVEL=1
+-ccflags-y += -DECM_SFE_MULTICAST_IPV6_DEBUG_LEVEL=1
+ ccflags-y += -DECM_PPE_COMMON_DEBUG_LEVEL=1
+ ccflags-y += -DECM_PPE_IPV4_DEBUG_LEVEL=1
+ ccflags-y += -DECM_PPE_PORTED_IPV4_DEBUG_LEVEL=1
+@@ -494,16 +497,8 @@ ccflags-y += -I$(obj)/ -I$(obj)/ecm_db -
+ 
+ ifeq ($(ECM_FRONT_END_PPE_ENABLE), y)
+ 	ccflags-y += -I$(obj)/frontends/ppe
+-ifeq ($(SoC),$(filter $(SoC), ipq53xx_32 ipq53xx))
+-# #############################################################################
+-# Define ECM_PPE_SOURCE_INTERFACE_CHECK_ENABLE=y in order
+-# to enable support for source interface check in PPE.
+-# #############################################################################
+-ccflags-y += -DECM_PPE_SOURCE_INTERFACE_CHECK_ENABLE=1
+-endif
+ endif
+ 
+ ccflags-y += -Wall -Werror
+ 
+ obj ?= .
+-endif
+--- a/Makefile_61.mk
++++ /dev/null
+@@ -1,480 +0,0 @@
+-# ###################################################
+-# Makefile for the QCA NSS ECM
+-# ###################################################
+-
+-ifeq ($(ECM_FRONT_END_SFE_ENABLE), y)
+-obj-m += examples/ecm_sfe_l2.o
+-endif
+-obj-m +=examples/ecm_ae_select.o
+-
+-obj-m += ecm.o
+-#ifeq ($(BUILD_ECM_WIFI_PLUGIN),y)
+-#obj-m += ecm_wifi_plugins/
+-#endif
+-
+-# #####################################################
+-# Example builds.
+-# Enable example build by using the menuconfig options.
+-# #####################################################
+-ifeq ($(EXAMPLES_BUILD_PCC),y)
+-obj-m += examples/ecm_pcc_test.o
+-endif
+-ifeq ($(EXAMPLES_BUILD_MARK),y)
+-obj-m += examples/ecm_mark_test.o
+-endif
+-#ifeq ($(EXAMPLES_BUILD_OVS),y)
+-#obj-m += examples/ecm_ovs.o
+-#endif
+-
+-ecm-y := \
+-	 frontends/cmn/ecm_ae_classifier.o \
+-	 frontends/cmn/ecm_ipv4.o \
+-	 frontends/cmn/ecm_ported_ipv4.o \
+-	 ecm_tracker_udp.o \
+-	 ecm_tracker_tcp.o \
+-	 ecm_tracker_datagram.o \
+-	 ecm_tracker.o \
+-	 frontends/ecm_front_end_ipv4.o \
+-	 frontends/ecm_front_end_common.o \
+-	 ecm_db/ecm_db.o \
+-	 ecm_db/ecm_db_connection.o \
+-	 ecm_db/ecm_db_mapping.o \
+-	 ecm_db/ecm_db_host.o \
+-	 ecm_db/ecm_db_node.o \
+-	 ecm_db/ecm_db_iface.o \
+-	 ecm_db/ecm_db_listener.o \
+-	 ecm_db/ecm_db_timer.o \
+-	 ecm_classifier.o \
+-	 ecm_classifier_default.o \
+-	 ecm_interface.o \
+-	 ecm_conntrack_notifier.o \
+-	 ecm_init.o \
+-	 ecm_notifier.o
+-
+-ecm-$(ECM_IPV6_ENABLE) += frontends/ecm_front_end_ipv6.o
+-ecm-$(ECM_IPV6_ENABLE) += frontends/cmn/ecm_ipv6.o
+-ecm-$(ECM_IPV6_ENABLE) += frontends/cmn/ecm_ported_ipv6.o
+-ecm-$(ECM_NON_PORTED_SUPPORT_ENABLE) += frontends/cmn/ecm_non_ported_ipv4.o
+-ifeq ($(ECM_NON_PORTED_SUPPORT_ENABLE), y)
+-ecm-$(ECM_IPV6_ENABLE) += frontends/cmn/ecm_non_ported_ipv6.o
+-endif
+-
+-#SFE Multicast is enabled in case NSS disabled
+-#ecm-$(ECM_MULTICAST_ENABLE) += frontends/cmn/ecm_multicast_ipv4.o
+-#ifeq ($(ECM_IPV6_ENABLE), y)
+-#ecm-$(ECM_MULTICAST_ENABLE) += frontends/cmn/ecm_multicast_ipv6.o
+-#endif
+-
+-# #############################################################################
+-# Define ECM_FRONT_END_NSS_ENABLE=y in order to select
+-# nss as ECM's front end.
+-# #############################################################################
+-ecm-$(ECM_FRONT_END_NSS_ENABLE) += frontends/nss/ecm_nss_common.o
+-ecm-$(ECM_FRONT_END_NSS_ENABLE) += frontends/nss/ecm_nss_ipv4.o
+-ecm-$(ECM_FRONT_END_NSS_ENABLE) += frontends/nss/ecm_nss_ported_ipv4.o
+-ccflags-$(ECM_FRONT_END_NSS_ENABLE) += -DECM_FRONT_END_NSS_ENABLE
+-
+-# #############################################################################
+-# Define ECM_FRONT_END_SFE_ENABLE=y in order to select
+-# sfe as ECM's front end.
+-# #############################################################################
+-ecm-$(ECM_FRONT_END_SFE_ENABLE) += frontends/sfe/ecm_sfe_common.o
+-ecm-$(ECM_FRONT_END_SFE_ENABLE) += frontends/sfe/ecm_sfe_ipv4.o
+-ecm-$(ECM_FRONT_END_SFE_ENABLE) += frontends/sfe/ecm_sfe_ported_ipv4.o
+-ccflags-$(ECM_FRONT_END_SFE_ENABLE) += -DECM_FRONT_END_SFE_ENABLE
+-
+-# #############################################################################
+-# Define ECM_FRONT_END_PPE_ENABLE=y in order to select
+-# ppe as ECM's front end.
+-# #############################################################################
+-ecm-$(ECM_FRONT_END_PPE_ENABLE) += frontends/ppe/ecm_ppe_common.o
+-ecm-$(ECM_FRONT_END_PPE_ENABLE) += frontends/ppe/ecm_ppe_ipv4.o
+-ecm-$(ECM_FRONT_END_PPE_ENABLE) += frontends/ppe/ecm_ppe_ported_ipv4.o
+-ccflags-$(ECM_FRONT_END_PPE_ENABLE) += -DECM_FRONT_END_PPE_ENABLE
+-
+-# #############################################################################
+-# Define ECM_FRONT_END_CONN_LIMIT_ENABLE=y in order to limit accelerated
+-# connections for low-memory profiles.
+-# #############################################################################
+-ccflags-$(ECM_FRONT_END_CONN_LIMIT_ENABLE) += -DECM_FRONT_END_CONN_LIMIT_ENABLE
+-
+-# #############################################################################
+-# Define ECM_INTERFACE_BOND_ENABLE=y in order to enable
+-# Bonding / Link Aggregation support.
+-# #############################################################################
+-ecm-$(ECM_INTERFACE_BOND_ENABLE) += frontends/cmn/ecm_bond_notifier.o
+-ccflags-$(ECM_INTERFACE_BOND_ENABLE) += -DECM_INTERFACE_BOND_ENABLE
+-
+-# #############################################################################
+-# Define ECM_INTERFACE_PPPOE_ENABLE=y in order
+-# to enable support for PPPoE acceleration.
+-# #############################################################################
+-ECM_INTERFACE_PPPOE_ENABLE=y
+-ccflags-$(ECM_INTERFACE_PPPOE_ENABLE) += -DECM_INTERFACE_PPPOE_ENABLE
+-
+-# #############################################################################
+-# Define ECM_INTERFACE_L2TPV2_ENABLE=y in order
+-# to enable support for l2tpv2 acceleration.
+-# #############################################################################
+-ccflags-$(ECM_INTERFACE_L2TPV2_ENABLE) += -DECM_INTERFACE_L2TPV2_ENABLE
+-
+-# #############################################################################
+-# Define ECM_INTERFACE_PPTP_ENABLE=y in order
+-# to enable support for pptp acceleration.
+-# #############################################################################
+-ccflags-$(ECM_INTERFACE_PPTP_ENABLE) += -DECM_INTERFACE_PPTP_ENABLE
+-
+-# #############################################################################
+-# if pppoe, l2tpv2, pptp acceleration is enabled, ppp should
+-# be enabled automatically
+-# #############################################################################
+-ECM_INTERFACE_PPP_ENABLE=y
+-ifeq "$(ECM_INTERFACE_PPPOE_ENABLE)" "n"
+-ifeq "$(ECM_INTERFACE_L2TPV2_ENABLE)" "n"
+-ifeq "$(ECM_INTERFACE_PPTP_ENABLE)" "n"
+-ECM_INTERFACE_PPP_ENABLE=n
+-endif
+-endif
+-endif
+-ccflags-$(ECM_INTERFACE_PPP_ENABLE) += -DECM_INTERFACE_PPP_ENABLE
+-
+-# #############################################################################
+-# Define ECM_INTERFACE_GRE_TAP_ENABLE=y in order
+-# to enable support for GRE TAP interface.
+-# #############################################################################
+-ccflags-$(ECM_INTERFACE_GRE_TAP_ENABLE) += -DECM_INTERFACE_GRE_TAP_ENABLE
+-
+-# #############################################################################
+-# Define ECM_INTERFACE_GRE_TUN_ENABLE=y in order
+-# to enable support for GRE TUN interface.
+-# #############################################################################
+-ccflags-$(ECM_INTERFACE_GRE_TUN_ENABLE) += -DECM_INTERFACE_GRE_TUN_ENABLE
+-
+-ifeq ($(ECM_IPV6_ENABLE), y)
+-# #############################################################################
+-# Define ECM_INTERFACE_SIT_ENABLE=y in order
+-# to enable support for SIT interface.
+-# #############################################################################
+-#ccflags-$(ECM_INTERFACE_SIT_ENABLE) += -DECM_INTERFACE_SIT_ENABLE
+-
+-# #############################################################################
+-# Define ECM_INTERFACE_TUNIPIP6_ENABLE=y in order
+-# to enable support for TUNIPIP6 interface.
+-# #############################################################################
+-#ccflags-$(ECM_INTERFACE_TUNIPIP6_ENABLE) += -DECM_INTERFACE_TUNIPIP6_ENABLE
+-
+-# #############################################################################
+-# Define ECM_INTERFACE_MAP_T_ENABLE=y in order
+-# to enable support for MAP-T interface.
+-# #############################################################################
+-#ccflags-$(ECM_INTERFACE_MAP_T_ENABLE) += -DECM_INTERFACE_MAP_T_ENABLE
+-endif
+-
+-# #############################################################################
+-# Define ECM_INTERFACE_RAWIP_ENABLE=y in order
+-# to enable support for RAWIP interface.
+-# #############################################################################
+-#ccflags-$(ECM_INTERFACE_RAWIP_ENABLE) += -DECM_INTERFACE_RAWIP_ENABLE
+-
+-# #############################################################################
+-# Define ECM_INTERFACE_VXLAN_ENABLE=y in order
+-# to enable support for VxLAN interface.
+-# #############################################################################
+-ccflags-$(ECM_INTERFACE_VXLAN_ENABLE) += -DECM_INTERFACE_VXLAN_ENABLE
+-
+-# #############################################################################
+-# Define ECM_IPV6_ENABLE=y in order to enable IPv6 support in the ECM.
+-# #############################################################################
+-ccflags-$(ECM_IPV6_ENABLE) += -DECM_IPV6_ENABLE
+-
+-# #############################################################################
+-# Define ECM_MULTICAST_ENABLE=y in order to enable support for ECM Multicast
+-# NSS is enabled, using NSS multicast acceleration, otherwise using SFE
+-# multicast acceleration.
+-# #############################################################################
+-
+-ecm-$(ECM_MULTICAST_ENABLE) += ecm_db/ecm_db_multicast.o
+-#ccflags-$(ECM_MULTICAST_ENABLE) += -DECM_MULTICAST_ENABLE
+-
+-ifeq ($(ECM_FRONT_END_NSS_ENABLE), y)
+-ecm-$(ECM_MULTICAST_ENABLE) += frontends/nss/ecm_nss_multicast_ipv4.o
+-ifeq ($(ECM_IPV6_ENABLE), y)
+-ecm-$(ECM_MULTICAST_ENABLE) += frontends/nss/ecm_nss_multicast_ipv6.o
+-endif
+-else
+-#ecm-$(ECM_MULTICAST_ENABLE) += frontends/sfe/ecm_sfe_multicast_ipv4.o
+-ifeq ($(ECM_IPV6_ENABLE), y)
+-#ecm-$(ECM_MULTICAST_ENABLE) += frontends/sfe/ecm_sfe_multicast_ipv6.o
+-endif
+-endif
+-
+-# #############################################################################
+-# Define ECM_XFRM_ENABLE=y in order to enable
+-# #############################################################################
+-#ccflags-$(ECM_XFRM_ENABLE) += -DECM_XFRM_ENABLE
+-
+-# #############################################################################
+-# Define ECM_INTERFACE_OVS_BRIDGE_ENABLE=y in order to enable support for OVS
+-# #############################################################################
+-#ccflags-$(ECM_INTERFACE_OVS_BRIDGE_ENABLE) += -DECM_INTERFACE_OVS_BRIDGE_ENABLE
+-
+-# #############################################################################
+-# Define ECM_INTERFACE_VLAN_ENABLE=y in order to enable support for VLAN
+-# #############################################################################
+-ECM_INTERFACE_VLAN_ENABLE=y
+-ccflags-$(ECM_INTERFACE_VLAN_ENABLE) += -DECM_INTERFACE_VLAN_ENABLE
+-
+-# #############################################################################
+-# Define ECM_INTERFACE_MACVLAN_ENABLE=y in order to enable support for MACVLAN
+-# #############################################################################
+-#ccflags-$(ECM_INTERFACE_MACVLAN_ENABLE) += -DECM_INTERFACE_MACVLAN_ENABLE
+-
+-# #############################################################################
+-# Define ECM_INTERFACE_IPSEC_ENABLE=y in order to enable support for IPSEC
+-# #############################################################################
+-#ccflags-$(ECM_INTERFACE_IPSEC_ENABLE) += -DECM_INTERFACE_IPSEC_ENABLE
+-
+-ECM_INTERFACE_IPSEC_GLUE_LAYER_SUPPORT_ENABLE=n
+-ifeq ($(SoC),$(filter $(SoC), ipq807x ipq807x_64 ipq60xx ipq60xx_64 ipq50xx \
+-	     ipq50xx_64 ipq95xx_32 ipq95xx ipq53xx_32 ipq53xx))
+-ECM_INTERFACE_IPSEC_GLUE_LAYER_SUPPORT_ENABLE=$(ECM_INTERFACE_IPSEC_ENABLE)
+-#ccflags-$(ECM_INTERFACE_IPSEC_GLUE_LAYER_SUPPORT_ENABLE) += -DECM_INTERFACE_IPSEC_GLUE_LAYER_SUPPORT_ENABLE
+-endif
+-
+-ifeq ($(ECM_FRONT_END_NSS_ENABLE), y)
+-ecm-$(ECM_IPV6_ENABLE) += frontends/nss/ecm_nss_ipv6.o
+-ecm-$(ECM_IPV6_ENABLE) += frontends/nss/ecm_nss_ported_ipv6.o
+-endif
+-ifeq ($(ECM_FRONT_END_SFE_ENABLE), y)
+-ecm-$(ECM_IPV6_ENABLE) += frontends/sfe/ecm_sfe_ipv6.o
+-ecm-$(ECM_IPV6_ENABLE) += frontends/sfe/ecm_sfe_ported_ipv6.o
+-endif
+-ifeq ($(ECM_FRONT_END_PPE_ENABLE), y)
+-ecm-$(ECM_IPV6_ENABLE) += frontends/ppe/ecm_ppe_ipv6.o
+-ecm-$(ECM_IPV6_ENABLE) += frontends/ppe/ecm_ppe_ported_ipv6.o
+-endif
+-
+-# #############################################################################
+-# Define ECM_CLASSIFIER_OVS_ENABLE=y in order to enable ovs classifier.
+-# #############################################################################
+-#ecm-$(ECM_CLASSIFIER_OVS_ENABLE) += ecm_classifier_ovs.o
+-#ccflags-$(ECM_CLASSIFIER_OVS_ENABLE) += -DECM_CLASSIFIER_OVS_ENABLE
+-
+-# #############################################################################
+-# Define ECM_CLASSIFIER_MARK_ENABLE=y in order to enable mark classifier.
+-# #############################################################################
+-ECM_CLASSIFIER_MARK_ENABLE=y
+-ecm-$(ECM_CLASSIFIER_MARK_ENABLE) += ecm_classifier_mark.o
+-ccflags-$(ECM_CLASSIFIER_MARK_ENABLE) += -DECM_CLASSIFIER_MARK_ENABLE
+-
+-# #############################################################################
+-# Define ECM_CLASSIFIER_MSCS_ENABLE=y in order to enable mscs flow classifier.
+-# #############################################################################
+-#ecm-$(ECM_CLASSIFIER_MSCS_ENABLE) += ecm_classifier_mscs.o
+-#ccflags-$(ECM_CLASSIFIER_MSCS_ENABLE) += -DECM_CLASSIFIER_MSCS_ENABLE
+-
+-# #############################################################################
+-# Define ECM_CLASSIFIER_MSCS_SCS_ENABLE=y in order to enable SCS classifier.
+-# #############################################################################
+-#ccflags-$(ECM_CLASSIFIER_MSCS_SCS_ENABLE) += -DECM_CLASSIFIER_MSCS_SCS_ENABLE
+-
+-# #############################################################################
+-# Define ECM_CLASSIFIER_NL_ENABLE=y in order to enable NL classifier.
+-# #############################################################################
+-#ecm-$(ECM_CLASSIFIER_NL_ENABLE) += ecm_classifier_nl.o
+-#ccflags-$(ECM_CLASSIFIER_NL_ENABLE) += -DECM_CLASSIFIER_NL_ENABLE
+-
+-# #############################################################################
+-# Define ECM_CLASSIFIER_DSCP_ENABLE=y in order to enable DSCP classifier.
+-# #############################################################################
+-ECM_CLASSIFIER_DSCP_ENABLE=y
+-ecm-$(ECM_CLASSIFIER_DSCP_ENABLE) += ecm_classifier_dscp.o
+-ccflags-$(ECM_CLASSIFIER_DSCP_ENABLE) += -DECM_CLASSIFIER_DSCP_ENABLE
+-#ccflags-$(ECM_CLASSIFIER_DSCP_IGS) += -DECM_CLASSIFIER_DSCP_IGS
+-
+-# #############################################################################
+-# Define ECM_CLASSIFIER_HYFI_ENABLE=y in order to enable
+-# the Hy-Fi classifier in ECM. Currently disabled until the integration
+-# with Hy-Fi is completed.
+-# #############################################################################
+-#
+-#ecm-$(ECM_CLASSIFIER_HYFI_ENABLE) += ecm_classifier_hyfi.o
+-#ccflags-$(ECM_CLASSIFIER_HYFI_ENABLE) += -DECM_CLASSIFIER_HYFI_ENABLE
+-
+-# #############################################################################
+-# Define ECM_CLASSIFIER_PCC_ENABLE=y in order to enable
+-# the Parental Controls subsystem classifier in ECM. Currently disabled until
+-# customers require it / if they need to integrate their Parental Controls with it.
+-# #############################################################################
+-ECM_CLASSIFIER_PCC_ENABLE=y
+-ecm-$(ECM_CLASSIFIER_PCC_ENABLE) += ecm_classifier_pcc.o
+-ccflags-$(ECM_CLASSIFIER_PCC_ENABLE) += -DECM_CLASSIFIER_PCC_ENABLE
+-
+-# #############################################################################
+-# Define ECM_CLASSIFIER_EMESH_ENABLE=y in order to enable E-Mesh classifier.
+-# #############################################################################
+-#ecm-$(ECM_CLASSIFIER_EMESH_ENABLE) += ecm_classifier_emesh.o
+-#ccflags-$(ECM_CLASSIFIER_EMESH_ENABLE) += -DECM_CLASSIFIER_EMESH_ENABLE
+-
+-# #############################################################################
+-# Define ECM_NON_PORTED_SUPPORT_ENABLE=y in order to enable non-ported protocol.
+-# #############################################################################
+-
+-
+-ifeq ($(ECM_FRONT_END_NSS_ENABLE), y)
+-ecm-$(ECM_NON_PORTED_SUPPORT_ENABLE) += frontends/nss/ecm_nss_non_ported_ipv4.o
+-ifeq ($(ECM_IPV6_ENABLE), y)
+-ecm-$(ECM_NON_PORTED_SUPPORT_ENABLE) += frontends/nss/ecm_nss_non_ported_ipv6.o
+-endif
+-endif
+-
+-ifeq ($(ECM_FRONT_END_SFE_ENABLE), y)
+-ecm-$(ECM_NON_PORTED_SUPPORT_ENABLE) += frontends/sfe/ecm_sfe_non_ported_ipv4.o
+-ifeq ($(ECM_IPV6_ENABLE), y)
+-ecm-$(ECM_NON_PORTED_SUPPORT_ENABLE) += frontends/sfe/ecm_sfe_non_ported_ipv6.o
+-endif
+-endif
+-
+-ifeq ($(ECM_FRONT_END_PPE_ENABLE), y)
+-ecm-$(ECM_NON_PORTED_SUPPORT_ENABLE) += frontends/ppe/ecm_ppe_non_ported_ipv4.o
+-ifeq ($(ECM_IPV6_ENABLE), y)
+-ecm-$(ECM_NON_PORTED_SUPPORT_ENABLE) += frontends/ppe/ecm_ppe_non_ported_ipv6.o
+-endif
+-endif
+-
+-ccflags-$(ECM_NON_PORTED_SUPPORT_ENABLE) += -DECM_NON_PORTED_SUPPORT_ENABLE
+-
+-# #############################################################################
+-# Define ECM_STATE_OUTPUT_ENABLE=y to support XML state output
+-# #############################################################################
+-ECM_STATE_OUTPUT_ENABLE=y
+-ecm-$(ECM_STATE_OUTPUT_ENABLE) += ecm_state.o
+-ccflags-$(ECM_STATE_OUTPUT_ENABLE) += -DECM_STATE_OUTPUT_ENABLE
+-
+-# #############################################################################
+-# Define ECM_DB_ADVANCED_STATS_ENABLE to support XML state output
+-# #############################################################################
+-ECM_DB_ADVANCED_STATS_ENABLE=y
+-ccflags-$(ECM_DB_ADVANCED_STATS_ENABLE) += -DECM_DB_ADVANCED_STATS_ENABLE
+-
+-# #############################################################################
+-# Define ECM_DB_CONNECTION_CROSS_REFERENCING_ENABLE=y in order to enable
+-# the database to track relationships between objects.
+-# #############################################################################
+-ECM_DB_CONNECTION_CROSS_REFERENCING_ENABLE=y
+-ccflags-$(ECM_DB_CONNECTION_CROSS_REFERENCING_ENABLE) += -DECM_DB_XREF_ENABLE
+-
+-# #############################################################################
+-# Define ECM_TRACKER_DPI_SUPPORT_ENABLE=y in order to enable support for
+-# deep packet inspection and tracking of data with the trackers.
+-# #############################################################################
+-ccflags-$(ECM_TRACKER_DPI_SUPPORT_ENABLE) += -DECM_TRACKER_DPI_SUPPORT_ENABLE
+-
+-# #############################################################################
+-# Define ECM_DB_CLASSIFIER_TYPE_ASSIGNMENTS_TRACK_ENABLE=y in order to enable
+-# support for the database keeping lists of connections that are assigned
+-# on a per TYPE of classifier basis.
+-# #############################################################################
+-ECM_DB_CLASSIFIER_TYPE_ASSIGNMENTS_TRACK_ENABLE=y
+-ccflags-$(ECM_DB_CLASSIFIER_TYPE_ASSIGNMENTS_TRACK_ENABLE) += -DECM_DB_CTA_TRACK_ENABLE
+-
+-# #############################################################################
+-# Define ECM_BAND_STEERING_ENABLE=y in order to enable
+-# band steering feature.
+-# #############################################################################
+-ECM_BAND_STEERING_ENABLE=y
+-ccflags-$(ECM_BAND_STEERING_ENABLE) += -DECM_BAND_STEERING_ENABLE
+-
+-# #############################################################################
+-# Define ECM_INTERFACE_OVPN_ENABLE=y in order
+-# to enable support for OVPN acceleration.
+-# #############################################################################
+-#ccflags-$(ECM_INTERFACE_OVPN_ENABLE) += -DECM_INTERFACE_OVPN_ENABLE
+-
+-# #############################################################################
+-# Define ECM_BRIDGE_VLAN_FILTERING_ENABLE=y in order
+-# to enable support for bridge VLAN filter acceleration.
+-# #############################################################################
+-ccflags-$(ECM_BRIDGE_VLAN_FILTERING_ENABLE) += -DECM_BRIDGE_VLAN_FILTERING_ENABLE
+-
+-# #############################################################################
+-# Debug flags, set these to = 0 if you want to disable all debugging for that
+-# file.
+-# By turning off debugs you gain maximum ECM performance.
+-# #############################################################################
+-ccflags-y += -DECM_CLASSIFIER_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CLASSIFIER_OVS_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CLASSIFIER_MARK_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CLASSIFIER_DSCP_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CLASSIFIER_HYFI_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CLASSIFIER_PCC_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CLASSIFIER_NL_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CLASSIFIER_EMESH_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CLASSIFIER_MSCS_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CLASSIFIER_DEFAULT_DEBUG_LEVEL=1
+-ccflags-y += -DECM_DB_DEBUG_LEVEL=1
+-ccflags-y += -DECM_INIT_DEBUG_LEVEL=3
+-ccflags-y += -DECM_FRONT_END_IPV4_DEBUG_LEVEL=1
+-ccflags-y += -DECM_FRONT_END_IPV6_DEBUG_LEVEL=1
+-ccflags-y += -DECM_FRONT_END_COMMON_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CMN_IPV4_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CMN_IPV6_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CMN_PORTED_IPV4_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CMN_PORTED_IPV6_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CMN_NON_PORTED_IPV4_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CMN_NON_PORTED_IPV6_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CMN_MULTICAST_IPV4_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CMN_MULTICAST_IPV6_DEBUG_LEVEL=1
+-ccflags-y += -DECM_NSS_COMMON_DEBUG_LEVEL=1
+-ccflags-y += -DECM_NSS_IPV4_DEBUG_LEVEL=1
+-ccflags-y += -DECM_NSS_PORTED_IPV4_DEBUG_LEVEL=1
+-ccflags-y += -DECM_NSS_NON_PORTED_IPV4_DEBUG_LEVEL=1
+-ccflags-y += -DECM_NSS_MULTICAST_IPV4_DEBUG_LEVEL=1
+-ccflags-y += -DECM_NSS_IPV6_DEBUG_LEVEL=1
+-ccflags-y += -DECM_NSS_PORTED_IPV6_DEBUG_LEVEL=1
+-ccflags-y += -DECM_NSS_NON_PORTED_IPV6_DEBUG_LEVEL=1
+-ccflags-y += -DECM_NSS_MULTICAST_IPV6_DEBUG_LEVEL=1
+-ccflags-y += -DECM_SFE_COMMON_DEBUG_LEVEL=1
+-ccflags-y += -DECM_SFE_IPV4_DEBUG_LEVEL=1
+-ccflags-y += -DECM_SFE_PORTED_IPV4_DEBUG_LEVEL=1
+-ccflags-y += -DECM_SFE_NON_PORTED_IPV4_DEBUG_LEVEL=1
+-ccflags-y += -DECM_SFE_MULTICAST_IPV4_DEBUG_LEVEL=1
+-ccflags-y += -DECM_SFE_IPV6_DEBUG_LEVEL=1
+-ccflags-y += -DECM_SFE_PORTED_IPV6_DEBUG_LEVEL=1
+-ccflags-y += -DECM_SFE_NON_PORTED_IPV6_DEBUG_LEVEL=1
+-ccflags-y += -DECM_SFE_MULTICAST_IPV6_DEBUG_LEVEL=1
+-ccflags-y += -DECM_PPE_COMMON_DEBUG_LEVEL=1
+-ccflags-y += -DECM_PPE_IPV4_DEBUG_LEVEL=1
+-ccflags-y += -DECM_PPE_PORTED_IPV4_DEBUG_LEVEL=1
+-ccflags-y += -DECM_PPE_NON_PORTED_IPV4_DEBUG_LEVEL=1
+-ccflags-y += -DECM_PPE_IPV6_DEBUG_LEVEL=1
+-ccflags-y += -DECM_PPE_PORTED_IPV6_DEBUG_LEVEL=1
+-ccflags-y += -DECM_PPE_NON_PORTED_IPV6_DEBUG_LEVEL=1
+-ccflags-y += -DECM_CONNTRACK_NOTIFIER_DEBUG_LEVEL=1
+-ccflags-y += -DECM_TRACKER_DEBUG_LEVEL=1
+-ccflags-y += -DECM_TRACKER_DATAGRAM_DEBUG_LEVEL=1
+-ccflags-y += -DECM_TRACKER_TCP_DEBUG_LEVEL=1
+-ccflags-y += -DECM_TRACKER_UDP_DEBUG_LEVEL=1
+-ccflags-y += -DECM_BOND_NOTIFIER_DEBUG_LEVEL=1
+-ccflags-y += -DECM_INTERFACE_DEBUG_LEVEL=1
+-ccflags-y += -DECM_STATE_DEBUG_LEVEL=1
+-ccflags-y += -DECM_OPENWRT_SUPPORT=1
+-ccflags-y += -DECM_NOTIFIER_DEBUG_LEVEL=1
+-ccflags-y += -DECM_AE_CLASSIFIER_DEBUG_LEVEL=1
+-
+-ccflags-y += -I$(obj)/ -I$(obj)/ecm_db -I$(obj)/frontends/include -I$(obj)/frontends/nss -I$(obj)/frontends/sfe -I$(obj)/frontends/cmn -I$(obj)/exports
+-
+-ifeq ($(ECM_FRONT_END_PPE_ENABLE), y)
+-	ccflags-y += -I$(obj)/frontends/ppe
+-ifeq ($(SoC),$(filter $(SoC), ipq53xx_32 ipq53xx))
+-# #############################################################################
+-# Define ECM_PPE_SOURCE_INTERFACE_CHECK_ENABLE=y in order
+-# to enable support for source interface check in PPE.
+-# #############################################################################
+-ccflags-y += -DECM_PPE_SOURCE_INTERFACE_CHECK_ENABLE=1
+-endif
+-endif
+-
+-ccflags-y += -Wall -Werror
+-
+-obj ?= .
+--- a/ecm_classifier_nl.c
++++ b/ecm_classifier_nl.c
+@@ -70,6 +70,7 @@
+ #include "ecm_tracker_tcp.h"
+ #include "ecm_classifier_nl.h"
+ #include "ecm_db.h"
++#include "ecm_front_end_common.h"
+ #include "ecm_front_end_ipv4.h"
+ #ifdef ECM_IPV6_ENABLE
+ #include "ecm_front_end_ipv6.h"
+@@ -144,12 +145,55 @@ static struct genl_multicast_group ecm_c
+ 	},
+ };
+ 
++/*
++ * Generic Netlink attr checking policies
++ */
++static struct nla_policy
++ecm_cl_nl_genl_policy[ECM_CL_NL_GENL_ATTR_COUNT] = {
++	[ECM_CL_NL_GENL_ATTR_TUPLE] = {
++		.type = NLA_UNSPEC,
++		.len = sizeof(struct ecm_cl_nl_genl_attr_tuple), },
++};
++
++static int ecm_classifier_nl_genl_msg_ACCEL(struct sk_buff *skb, struct genl_info *info);
++static int ecm_classifier_nl_genl_msg_DUMP(struct sk_buff *skb, struct netlink_callback *cb);
++
++/*
++ * Generic Netlink message-to-handler mapping
++ */
++static struct genl_ops ecm_cl_nl_genl_ops[] = {
++	{
++		.cmd = ECM_CL_NL_GENL_CMD_ACCEL,
++		.flags = 0,
++		.policy = ecm_cl_nl_genl_policy,
++		.doit = ecm_classifier_nl_genl_msg_ACCEL,
++		.dumpit = NULL,
++	},
++	{
++		.cmd = ECM_CL_NL_GENL_CMD_ACCEL_OK,
++		.flags = 0,
++		.policy = ecm_cl_nl_genl_policy,
++		.doit = NULL,
++		.dumpit = ecm_classifier_nl_genl_msg_DUMP,
++	},
++	{
++		.cmd = ECM_CL_NL_GENL_CMD_CONNECTION_CLOSED,
++		.flags = 0,
++		.policy = ecm_cl_nl_genl_policy,
++		.doit = NULL,
++		.dumpit = ecm_classifier_nl_genl_msg_DUMP,
++	},
++};
++
+ static struct genl_family ecm_cl_nl_genl_family = {
+-	.id = GENL_ID_GENERATE,
+ 	.hdrsize = 0,
+ 	.name = ECM_CL_NL_GENL_NAME,
+ 	.version = ECM_CL_NL_GENL_VERSION,
+ 	.maxattr = ECM_CL_NL_GENL_ATTR_MAX,
++	.ops = ecm_cl_nl_genl_ops,
++	.n_ops = ARRAY_SIZE(ecm_cl_nl_genl_ops),
++	.mcgrps = ecm_cl_nl_genl_mcgrp,
++	.n_mcgrps = ARRAY_SIZE(ecm_cl_nl_genl_mcgrp),
+ };
+ 
+ /*
+@@ -213,12 +257,7 @@ ecm_classifier_nl_send_genl_msg(enum ECM
+ 		return ret;
+ 	}
+ 
+-	ret = genlmsg_end(skb, msg_head);
+-	if (ret < 0) {
+-		DEBUG_WARN("failed to finalize genl msg: %d\n", ret);
+-		nlmsg_free(skb);
+-		return ret;
+-	}
++	genlmsg_end(skb, msg_head);
+ 
+ 	/* genlmsg_multicast frees the skb in both success and error cases */
+ 	ret = genlmsg_multicast(&ecm_cl_nl_genl_family,
+@@ -1366,49 +1405,14 @@ static struct file_operations ecm_classi
+ 	.write = ecm_classifier_nl_set_command,
+ };
+ 
+-/*
+- * Generic Netlink attr checking policies
+- */
+-static struct nla_policy
+-ecm_cl_nl_genl_policy[ECM_CL_NL_GENL_ATTR_COUNT] = {
+-	[ECM_CL_NL_GENL_ATTR_TUPLE] = {
+-		.type = NLA_UNSPEC,
+-		.len = sizeof(struct ecm_cl_nl_genl_attr_tuple), },
+-};
+-
+-/*
+- * Generic Netlink message-to-handler mapping
+- */
+-static struct genl_ops ecm_cl_nl_genl_ops[] = {
+-	{
+-		.cmd = ECM_CL_NL_GENL_CMD_ACCEL,
+-		.flags = 0,
+-		.policy = ecm_cl_nl_genl_policy,
+-		.doit = ecm_classifier_nl_genl_msg_ACCEL,
+-		.dumpit = NULL,
+-	},
+-	{
+-		.cmd = ECM_CL_NL_GENL_CMD_ACCEL_OK,
+-		.flags = 0,
+-		.policy = ecm_cl_nl_genl_policy,
+-		.doit = NULL,
+-		.dumpit = ecm_classifier_nl_genl_msg_DUMP,
+-	},
+-	{
+-		.cmd = ECM_CL_NL_GENL_CMD_CONNECTION_CLOSED,
+-		.flags = 0,
+-		.policy = ecm_cl_nl_genl_policy,
+-		.doit = NULL,
+-		.dumpit = ecm_classifier_nl_genl_msg_DUMP,
+-	},
+-};
+-
+ static int ecm_classifier_nl_register_genl(void)
+ {
+-
+-	return genl_register_family_with_ops_groups(&ecm_cl_nl_genl_family,
+-						      ecm_cl_nl_genl_ops,
+-						      ecm_cl_nl_genl_mcgrp);
++	int result;
++   result = genl_register_family(&ecm_cl_nl_genl_family);
++	if(result!=0){
++		DEBUG_ERROR("failed to register genl family: %d\n", result);
++	}
++	return result;
+ }
+ 
+ static void ecm_classifier_nl_unregister_genl(void)
+--- a/ecm_conntrack_notifier.c
++++ b/ecm_conntrack_notifier.c
+@@ -401,7 +401,11 @@ static struct notifier_block ecm_conntra
+  *	Netfilter conntrack event system to monitor connection tracking changes
+  */
+ static struct nf_ct_event_notifier ecm_conntrack_notifier = {
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 0))
+ 	.fcn	= ecm_conntrack_event,
++#else
++	.ct_event	= ecm_conntrack_event,
++#endif
+ };
+ #endif
+ #endif
+--- a/ecm_db/ecm_db.c
++++ b/ecm_db/ecm_db.c
+@@ -242,11 +242,13 @@ static int ecm_db_ipv6_route_table_updat
+ 					       unsigned long event,
+ 					       void *ptr)
+ {
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 16, 0))
+ 	struct fib6_config *cfg = (struct fib6_config *)ptr;
+ 	struct ecm_db_connection_instance *ci;
+-
++#endif
+ 	DEBUG_TRACE("route table update event v6\n");
+ 
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 16, 0))
+ 	if ((event != RTM_DELROUTE) && (event != RTM_NEWROUTE)) {
+ 		DEBUG_WARN("%px: Unhandled route table event: %lu\n", cfg, event);
+ 		return NOTIFY_DONE;
+@@ -262,12 +264,13 @@ static int ecm_db_ipv6_route_table_updat
+ 		ecm_db_connection_defunct_ip_version(6);
+ 		return NOTIFY_DONE;
+ 	}
+-
++#endif
+ 	/*
+ 	 * Disable IPv6 frontend processing until defunct function call is completed.
+ 	 */
+ 	ecm_front_end_ipv6_stop(1);
+ 
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 16, 0))
+ 	/*
+ 	 * Iterate all connections
+ 	 */
+@@ -298,7 +301,7 @@ static int ecm_db_ipv6_route_table_updat
+ 		 * Compute ECM connection's prefix destination address by masking it with the
+ 		 * route config's destination address prefix length.
+ 		 */
+-		ipv6_addr_prefix(&prefix_addr, &ecm_in6, cfg->fc_dst_len);
++		ipv6_addr_prefix(&prefix_addr, &ecm_in6, min(128, cfg->fc_dst_len));
+ 
+ 		DEBUG_TRACE("dest addr prefix: %pI6 prefix_len: %d ecm_in6: %pI6\n", &prefix_addr, cfg->fc_dst_len, &ecm_in6);
+ 
+@@ -326,7 +329,7 @@ static int ecm_db_ipv6_route_table_updat
+ 			 * Compute ECM connection's prefix source address by masking it with the
+ 			 * route config's destination address prefix length.
+ 			 */
+-			ipv6_addr_prefix(&prefix_addr, &ecm_in6, cfg->fc_dst_len);
++			ipv6_addr_prefix(&prefix_addr, &ecm_in6, min(128, cfg->fc_dst_len));
+ 
+ 			DEBUG_TRACE("src addr prefix: %pI6 prefix_len: %d ecm_in6: %pI6\n", &prefix_addr, cfg->fc_dst_len, &ecm_in6);
+ 
+@@ -402,11 +405,12 @@ next:
+ 		ecm_db_connection_deref(ci);
+ 		ci = cin;
+ 	}
+-
++#else
+ 	/*
+ 	 * Re-enable IPv6 frontend processing.
+ 	 */
+ 	ecm_front_end_ipv6_stop(0);
++#endif
+ 	return NOTIFY_DONE;
+ }
+ 
+--- a/ecm_db/ecm_db_connection.c
++++ b/ecm_db/ecm_db_connection.c
+@@ -446,7 +446,9 @@ EXPORT_SYMBOL(ecm_db_connection_make_def
+  */
+ void ecm_db_connection_data_totals_update(struct ecm_db_connection_instance *ci, bool is_from, uint64_t size, uint64_t packets)
+ {
++#ifdef ECM_DB_ADVANCED_STATS_ENABLE
+ 	int32_t i;
++#endif
+ 
+ 	DEBUG_CHECK_MAGIC(ci, ECM_DB_CONNECTION_INSTANCE_MAGIC, "%px: magic failed\n", ci);
+ 
+@@ -545,7 +547,9 @@ EXPORT_SYMBOL(ecm_db_connection_data_tot
+  */
+ void ecm_db_connection_data_totals_update_dropped(struct ecm_db_connection_instance *ci, bool is_from, uint64_t size, uint64_t packets)
+ {
++#ifdef ECM_DB_ADVANCED_STATS_ENABLE
+ 	int32_t i;
++#endif
+ 
+ 	DEBUG_CHECK_MAGIC(ci, ECM_DB_CONNECTION_INSTANCE_MAGIC, "%px: magic failed\n", ci);
+ 
+@@ -1539,6 +1543,7 @@ void ecm_db_connection_defunct_all(void)
+ }
+ EXPORT_SYMBOL(ecm_db_connection_defunct_all);
+ 
++#ifdef ECM_INTERFACE_OVS_BRIDGE_ENABLE
+ /*
+  * ecm_db_connection_defunct_by_classifier()
+  *	Make defunct based on masked fields
+@@ -1705,6 +1710,7 @@ next_ci:
+ 				ECM_IP_ADDR_TO_OCTAL(dest_addr_mask), dest_port_mask, proto_mask, cnt);
+ 	}
+ }
++#endif
+ 
+ /*
+  * ecm_db_connection_defunct_by_port()
+@@ -1994,6 +2000,7 @@ struct ecm_db_node_instance *ecm_db_conn
+ }
+ EXPORT_SYMBOL(ecm_db_connection_node_get_and_ref);
+ 
++#ifdef ECM_DB_XREF_ENABLE
+ /*
+  * ecm_db_connection_mapping_get_and_ref_next()
+  *	Return reference to next connection in the mapping chain in the specified direction.
+@@ -2035,6 +2042,7 @@ struct ecm_db_connection_instance *ecm_d
+ 	return nci;
+ }
+ EXPORT_SYMBOL(ecm_db_connection_iface_get_and_ref_next);
++#endif
+ 
+ /*
+  * ecm_db_connection_mapping_get_and_ref()
+--- a/ecm_db/ecm_db_node.c
++++ b/ecm_db/ecm_db_node.c
+@@ -227,9 +227,11 @@ EXPORT_SYMBOL(ecm_db_node_get_and_ref_ne
+  */
+ int ecm_db_node_deref(struct ecm_db_node_instance *ni)
+ {
++#ifdef ECM_DB_XREF_ENABLE
+ #if (DEBUG_LEVEL >= 1)
+ 	int dir;
+ #endif
++#endif
+ 	DEBUG_CHECK_MAGIC(ni, ECM_DB_NODE_INSTANCE_MAGIC, "%px: magic failed\n", ni);
+ 
+ 	spin_lock_bh(&ecm_db_lock);
+@@ -489,9 +491,11 @@ EXPORT_SYMBOL(ecm_db_node_iface_get_and_
+ void ecm_db_node_add(struct ecm_db_node_instance *ni, struct ecm_db_iface_instance *ii, uint8_t *address,
+ 					ecm_db_node_final_callback_t final, void *arg)
+ {
++#ifdef ECM_DB_XREF_ENABLE
+ #if (DEBUG_LEVEL >= 1)
+ 	int dir;
+ #endif
++#endif
+ 	ecm_db_node_hash_t hash_index;
+ 	struct ecm_db_listener_instance *li;
+ 
+--- a/ecm_init.c
++++ b/ecm_init.c
+@@ -122,7 +122,7 @@ static int __init ecm_init(void)
+ {
+ 	int ret;
+ 
+-	printk(KERN_INFO "ECM init\n");
++	printk(KERN_INFO "ECM init ( NHSS.QSDK.12.4.5.r2 2023-07-25 )\n");
+ 
+ 	selected_front_end = ecm_front_end_type_select();
+ 	if (selected_front_end == ECM_FRONT_END_TYPE_MAX) {
+--- a/ecm_interface.c
++++ b/ecm_interface.c
+@@ -1509,6 +1509,7 @@ struct neighbour *ecm_interface_ipv6_nei
+  */
+ bool ecm_interface_is_pptp(struct sk_buff *skb, const struct net_device *out)
+ {
++#ifdef ECM_INTERFACE_PPTP_ENABLE
+ 	struct net_device *in;
+ 
+ 	/*
+@@ -1533,6 +1534,7 @@ bool ecm_interface_is_pptp(struct sk_buf
+ 	}
+ 
+ 	dev_put(in);
++#endif
+ 	return false;
+ }
+ 
+@@ -1545,6 +1547,7 @@ bool ecm_interface_is_pptp(struct sk_buf
+  */
+ bool ecm_interface_is_l2tp_packet_by_version(struct sk_buff *skb, const struct net_device *out, int ver)
+ {
++#ifdef ECM_INTERFACE_L2TPV2_PPTP_ENABLE
+ 	uint32_t flag = 0;
+ 	struct net_device *in;
+ 
+@@ -1577,6 +1580,7 @@ bool ecm_interface_is_l2tp_packet_by_ver
+ 	}
+ 
+ 	dev_put(in);
++#endif
+ 	return false;
+ }
+ 
+@@ -1589,6 +1593,7 @@ bool ecm_interface_is_l2tp_packet_by_ver
+  */
+ bool ecm_interface_is_l2tp_pptp(struct sk_buff *skb, const struct net_device *out)
+ {
++#ifdef ECM_INTERFACE_L2TPV2_PPTP_ENABLE
+ 	struct net_device *in;
+ 
+ 	/*
+@@ -1611,6 +1616,7 @@ bool ecm_interface_is_l2tp_pptp(struct s
+ 	}
+ 
+ 	dev_put(in);
++#endif
+ 	return false;
+ }
+ 
+@@ -4811,7 +4817,7 @@ static inline bool ecm_interface_is_tunn
+ 		return true;
+ 	}
+ 
+-	if (protocol == IPPROTO_GRE || protocol == IPPROTO_ESP || protocol == IPPROTO_ETHERIP) {
++	if (protocol == IPPROTO_GRE || protocol == IPPROTO_ESP) {
+ 		return true;
+ 	}
+ 
+@@ -7159,6 +7165,7 @@ static void ecm_interface_regenerate_con
+ 		return;
+ 	}
+ 
++#ifdef ECM_DB_XREF_ENABLE
+ 	for (dir = 0; dir < ECM_DB_OBJ_DIR_MAX; dir++) {
+ 		/*
+ 		 * Re-generate all connections associated with this interface
+@@ -7174,6 +7181,7 @@ static void ecm_interface_regenerate_con
+ 			ci[dir] = cin;
+ 		}
+ 	}
++#endif
+ 
+ #ifdef ECM_MULTICAST_ENABLE
+ 	/*
+@@ -8077,7 +8085,7 @@ static int ecm_interface_wifi_event_rx(s
+ {
+ 	struct msghdr msg;
+ 	struct iovec  iov;
+-#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0))
+ 	mm_segment_t oldfs = get_fs();
+ #endif
+ 	int size;
+@@ -8090,12 +8098,12 @@ static int ecm_interface_wifi_event_rx(s
+ 	msg.msg_namelen = sizeof(struct sockaddr_nl);
+ 	msg.msg_control = NULL;
+ 	msg.msg_controllen = 0;
+-#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0))
+ 	set_fs(KERNEL_DS);
+ #endif
+ 	iov_iter_init(&msg.msg_iter, READ, &iov, 1, len);
+ 	size = sock_recvmsg(sock, &msg, msg.msg_flags);
+-#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0))
+ 	set_fs(oldfs);
+ #endif
+ 
+--- a/ecm_tracker_datagram.c
++++ b/ecm_tracker_datagram.c
+@@ -203,7 +203,7 @@ static void ecm_tracker_datagram_datagra
+  * ecm_tracker_datagram_discard_all()
+  *	Discard all tracked data
+  */
+-static void ecm_tracker_datagram_discard_all(struct ecm_tracker_datagram_internal_instance *dtii)
++void ecm_tracker_datagram_discard_all(struct ecm_tracker_datagram_internal_instance *dtii)
+ {
+ 	int32_t src_count;
+ 	int32_t dest_count;
+@@ -364,7 +364,7 @@ static void ecm_tracker_datagram_datagra
+  * ecm_tracker_datagram_datagram_size_get()
+  *	Return size in bytes of datagram at index i that was sent to the target
+  */
+-static int32_t ecm_tracker_datagram_datagram_size_get(struct ecm_tracker_datagram_instance *uti, ecm_tracker_sender_type_t sender, int32_t i)
++int32_t ecm_tracker_datagram_datagram_size_get(struct ecm_tracker_datagram_instance *uti, ecm_tracker_sender_type_t sender, int32_t i)
+ {
+ 	struct ecm_tracker_datagram_internal_instance *dtii = (struct ecm_tracker_datagram_internal_instance *)uti;
+ 
+@@ -412,7 +412,7 @@ static int32_t ecm_tracker_datagram_data
+  * ecm_tracker_datagram_datagram_read()
+  *	Read size bytes from datagram at index i into the buffer
+  */
+-static int ecm_tracker_datagram_datagram_read(struct ecm_tracker_datagram_instance *uti, ecm_tracker_sender_type_t sender, int32_t i, int32_t offset, int32_t size, void *buffer)
++int ecm_tracker_datagram_datagram_read(struct ecm_tracker_datagram_instance *uti, ecm_tracker_sender_type_t sender, int32_t i, int32_t offset, int32_t size, void *buffer)
+ {
+ 	struct ecm_tracker_datagram_internal_instance *dtii = (struct ecm_tracker_datagram_internal_instance *)uti;
+ 	int res;
+@@ -466,7 +466,7 @@ static int ecm_tracker_datagram_datagram
+  * ecm_tracker_datagram_datagram_add()
+  *	Append the datagram onto the tracker queue for the given target
+  */
+-static bool ecm_tracker_datagram_datagram_add(struct ecm_tracker_datagram_instance *uti, ecm_tracker_sender_type_t sender, struct sk_buff *skb)
++bool ecm_tracker_datagram_datagram_add(struct ecm_tracker_datagram_instance *uti, ecm_tracker_sender_type_t sender, struct sk_buff *skb)
+ {
+ 	struct ecm_tracker_datagram_internal_instance *dtii = (struct ecm_tracker_datagram_internal_instance *)uti;
+ 	struct sk_buff *skbc;
+--- a/frontends/ecm_front_end_common.c
++++ b/frontends/ecm_front_end_common.c
+@@ -511,6 +511,7 @@ bool ecm_front_end_gre_proto_is_accel_al
+ 							     struct nf_conntrack_tuple *reply_tuple,
+ 							     int ip_version, uint16_t offset)
+ {
++#ifdef ECM_INTERFACE_GRE_ENABLE
+ 	struct net_device *dev;
+ 	struct gre_base_hdr *greh;
+ 
+@@ -522,10 +523,12 @@ bool ecm_front_end_gre_proto_is_accel_al
+ 		/*
+ 		 * Case 1: PPTP locally terminated
+ 		 */
++#ifdef ECM_INTERFACE_PPTP_ENABLE
+ 		if (ecm_interface_is_pptp(skb, outdev)) {
+ 			DEBUG_TRACE("%px: PPTP GRE locally terminated - allow acceleration\n", skb);
+ 			return true;
+ 		}
++#endif
+ 
+ 		/*
+ 		 * Case 2: PPTP pass through
+@@ -651,6 +654,10 @@ bool ecm_front_end_gre_proto_is_accel_al
+ 	 */
+ 	DEBUG_TRACE("%px: GRE IPv%d pass through non NAT - allow acceleration\n", skb, ip_version);
+ 	return true;
++#else
++	DEBUG_TRACE("%px: GRE%d feature is disabled - do not allow acceleration\n", skb, ip_version);
++	return false;
++#endif
+ }
+ 
+ #ifdef ECM_CLASSIFIER_DSCP_ENABLE
+--- a/frontends/nss/ecm_nss_common.h
++++ b/frontends/nss/ecm_nss_common.h
+@@ -310,6 +310,7 @@ static inline bool ecm_nss_common_igs_ac
+ }
+ #endif
+ 
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,2))
+ #ifdef ECM_CLASSIFIER_PCC_ENABLE
+ /*
+  * ecm_nss_common_fill_mirror_info()
+@@ -363,6 +364,7 @@ static inline bool ecm_nss_common_fill_m
+ 	return true;
+ }
+ #endif
++#endif
+ 
+ bool ecm_nss_ipv6_is_conn_limit_reached(void);
+ bool ecm_nss_ipv4_is_conn_limit_reached(void);
+--- a/frontends/nss/ecm_nss_ipv4.c
++++ b/frontends/nss/ecm_nss_ipv4.c
+@@ -700,7 +700,7 @@ static void ecm_nss_ipv4_stats_sync_req_
+ 	}
+ 	spin_unlock_bh(&ecm_nss_ipv4_lock);
+ 
+-	usleep_range(ECM_NSS_IPV4_STATS_SYNC_UDELAY - 100, ECM_NSS_IPV4_STATS_SYNC_UDELAY);
++	msleep_interruptible(ECM_NSS_IPV4_STATS_SYNC_UDELAY / 1000);
+ 
+ 	/*
+ 	 * If index is 0, we are starting a new round, but if we still have time remain
+@@ -714,7 +714,7 @@ static void ecm_nss_ipv4_stats_sync_req_
+ 		}
+ 
+ 		if (time_after(ecm_nss_ipv4_next_req_time, current_jiffies)) {
+-			msleep(jiffies_to_msecs(ecm_nss_ipv4_next_req_time - current_jiffies));
++			msleep_interruptible(jiffies_to_msecs(ecm_nss_ipv4_next_req_time - current_jiffies));
+ 		}
+ 		ecm_nss_ipv4_roll_check_jiffies = jiffies;
+ 		ecm_nss_ipv4_next_req_time = ecm_nss_ipv4_roll_check_jiffies + ECM_NSS_IPV4_STATS_SYNC_PERIOD;
+--- a/frontends/nss/ecm_nss_ipv6.c
++++ b/frontends/nss/ecm_nss_ipv6.c
+@@ -676,7 +676,7 @@ static void ecm_nss_ipv6_stats_sync_req_
+ 	}
+ 	spin_unlock_bh(&ecm_nss_ipv6_lock);
+ 
+-	usleep_range(ECM_NSS_IPV6_STATS_SYNC_UDELAY - 100, ECM_NSS_IPV6_STATS_SYNC_UDELAY);
++	msleep_interruptible(ECM_NSS_IPV6_STATS_SYNC_UDELAY / 1000);
+ 
+ 	/*
+ 	 * If index is 0, we are starting a new round, but if we still have time remain
+@@ -690,7 +690,7 @@ static void ecm_nss_ipv6_stats_sync_req_
+ 		}
+ 
+ 		if (time_after(ecm_nss_ipv6_next_req_time, current_jiffies)) {
+-			msleep(jiffies_to_msecs(ecm_nss_ipv6_next_req_time - current_jiffies));
++			msleep_interruptible(jiffies_to_msecs(ecm_nss_ipv6_next_req_time - current_jiffies));
+ 		}
+ 		ecm_nss_ipv6_roll_check_jiffies = jiffies;
+ 		ecm_nss_ipv6_next_req_time = ecm_nss_ipv6_roll_check_jiffies + ECM_NSS_IPV6_STATS_SYNC_PERIOD;
+--- a/frontends/nss/ecm_nss_ported_ipv4.c
++++ b/frontends/nss/ecm_nss_ported_ipv4.c
+@@ -1045,6 +1045,7 @@ static void ecm_nss_ported_ipv4_connecti
+ 	}
+ #endif
+ 
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,2))
+ #ifdef ECM_CLASSIFIER_PCC_ENABLE
+ 	/*
+ 	 * Set up the interfaces for mirroring.
+@@ -1069,6 +1070,7 @@ static void ecm_nss_ported_ipv4_connecti
+ 		nircm->valid_flags |= NSS_IPV4_RULE_CREATE_MIRROR_VALID;
+ 	}
+ #endif
++#endif
+ 
+ 	if (ecm_nss_ipv4_vlan_passthrough_enable && !ecm_db_connection_is_routed_get(feci->ci) &&
+ 	   (nircm->vlan_primary_rule.ingress_vlan_tag == ECM_FRONT_END_VLAN_ID_NOT_CONFIGURED) &&
+--- a/frontends/nss/ecm_nss_ported_ipv6.c
++++ b/frontends/nss/ecm_nss_ported_ipv6.c
+@@ -1014,6 +1014,7 @@ static void ecm_nss_ported_ipv6_connecti
+ 	}
+ #endif
+ 
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,2))
+ #ifdef ECM_CLASSIFIER_PCC_ENABLE
+ 	/*
+ 	 * Set up the interfaces for mirroring.
+@@ -1038,6 +1039,7 @@ static void ecm_nss_ported_ipv6_connecti
+ 		nircm->valid_flags |= NSS_IPV6_RULE_CREATE_MIRROR_VALID;
+ 	}
+ #endif
++#endif
+ 
+ 	if (ecm_nss_ipv6_vlan_passthrough_enable && !ecm_db_connection_is_routed_get(feci->ci) &&
+ 	   (nircm->vlan_primary_rule.ingress_vlan_tag == ECM_FRONT_END_VLAN_ID_NOT_CONFIGURED) &&
+--- a/ecm_types.h
++++ b/ecm_types.h
+@@ -464,7 +464,7 @@ static inline bool ecm_string_to_ip_addr
+ static inline bool ecm_debugfs_create_u32(const char *name, umode_t mode,
+ 					  struct dentry *parent, u32 *value)
+ {
+-#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
+ 	struct dentry *d = debugfs_create_u32(name, mode, parent, value);
+ 	if (!d) {
+ 		return false;
+--- a/ecm_tracker.c
++++ b/ecm_tracker.c
+@@ -84,7 +84,6 @@ static bool ecm_tracker_ip_header_helper
+ static bool ecm_tracker_ip_header_helper_icmp(struct ecm_tracker_ip_protocols *etip, struct ecm_tracker_ip_protocol_header *etiph, struct ecm_tracker_ip_header *ip_hdr, struct sk_buff *skb, uint8_t protocol, ecm_tracker_ip_protocol_type_t ecm_ip_protocol, uint32_t offset, uint32_t remain, int16_t *next_hdr);
+ static bool ecm_tracker_ip_header_helper_unknown(struct ecm_tracker_ip_protocols *etip, struct ecm_tracker_ip_protocol_header *etiph, struct ecm_tracker_ip_header *ip_hdr, struct sk_buff *skb, uint8_t protocol, ecm_tracker_ip_protocol_type_t ecm_ip_protocol, uint32_t offset, uint32_t remain, int16_t *next_hdr);
+ static bool ecm_tracker_ip_header_helper_gre(struct ecm_tracker_ip_protocols *etip, struct ecm_tracker_ip_protocol_header *etiph, struct ecm_tracker_ip_header *ip_hdr, struct sk_buff *skb, uint8_t protocol, ecm_tracker_ip_protocol_type_t ecm_ip_protocol, uint32_t offset, uint32_t remain, int16_t *next_hdr);
+-static bool ecm_tracker_ip_header_helper_etherip(struct ecm_tracker_ip_protocols *etip, struct ecm_tracker_ip_protocol_header *etiph, struct ecm_tracker_ip_header *ip_hdr, struct sk_buff *skb, uint8_t protocol, ecm_tracker_ip_protocol_type_t ecm_ip_protocol, uint32_t offset, uint32_t remain, int16_t *next_hdr);
+ #ifdef ECM_IPV6_ENABLE
+ static bool ecm_tracker_ip_header_helper_ipv6_generic(struct ecm_tracker_ip_protocols *etip, struct ecm_tracker_ip_protocol_header *etiph, struct ecm_tracker_ip_header *ip_hdr, struct sk_buff *skb, uint8_t protocol, ecm_tracker_ip_protocol_type_t ecm_ip_protocol, uint32_t offset, uint32_t remain, int16_t *next_hdr);
+ static bool ecm_tracker_ip_header_helper_ipv6_fragment(struct ecm_tracker_ip_protocols *etip, struct ecm_tracker_ip_protocol_header *etiph, struct ecm_tracker_ip_header *ip_hdr, struct sk_buff *skb, uint8_t protocol, ecm_tracker_ip_protocol_type_t ecm_ip_protocol, uint32_t offset, uint32_t remain, int16_t *next_hdr);
+@@ -223,7 +222,7 @@ static struct ecm_tracker_ip_protocols {
+ 	{94, ECM_TRACKER_IP_PROTOCOL_TYPE_UNKNOWN, "94", ecm_tracker_ip_header_helper_unknown},
+ 	{95, ECM_TRACKER_IP_PROTOCOL_TYPE_UNKNOWN, "95", ecm_tracker_ip_header_helper_unknown},
+ 	{96, ECM_TRACKER_IP_PROTOCOL_TYPE_UNKNOWN, "96", ecm_tracker_ip_header_helper_unknown},
+-	{97, ECM_TRACKER_IP_PROTOCOL_TYPE_ETHERIP, "etherip", ecm_tracker_ip_header_helper_etherip},
++	{97, ECM_TRACKER_IP_PROTOCOL_TYPE_UNKNOWN, "97", ecm_tracker_ip_header_helper_unknown},
+ 	{98, ECM_TRACKER_IP_PROTOCOL_TYPE_UNKNOWN, "98", ecm_tracker_ip_header_helper_unknown},
+ 	{99, ECM_TRACKER_IP_PROTOCOL_TYPE_UNKNOWN, "99", ecm_tracker_ip_header_helper_unknown},
+ 	{100, ECM_TRACKER_IP_PROTOCOL_TYPE_UNKNOWN, "100", ecm_tracker_ip_header_helper_unknown},
+@@ -971,33 +970,6 @@ static bool ecm_tracker_ip_header_helper
+ 	 */
+ 	*next_hdr = -1;
+ 	return true;
+-}
+-
+-/*
+- * ecm_tracker_ip_header_helper_etherip()
+- *	Interpret an Etherip header
+- */
+-static bool ecm_tracker_ip_header_helper_etherip(struct ecm_tracker_ip_protocols *etip, struct ecm_tracker_ip_protocol_header *etiph, struct ecm_tracker_ip_header *ip_hdr,
+-						struct sk_buff *skb, uint8_t protocol, ecm_tracker_ip_protocol_type_t ecm_ip_protocol, uint32_t offset, uint32_t remain, int16_t *next_hdr)
+-{
+-	DEBUG_ASSERT((protocol == IPPROTO_ETHERIP) && (ecm_ip_protocol == ECM_TRACKER_IP_PROTOCOL_TYPE_ETHERIP), "Bad protocol: %u or ecm_ip_protocol: %d", protocol, ecm_ip_protocol);
+-
+-	DEBUG_TRACE("etherip helper skb: %px, protocol: %u, ecm_ip_proto: %d, offset: %u, remain: %u\n", skb, protocol, ecm_ip_protocol, offset, remain);
+-	if (remain < 16) {
+-		DEBUG_TRACE("not enough Etherip header: %u\n", remain);
+-		return false;
+-	}
+-
+-	etiph->protocol_number = protocol;
+-	etiph->header_size = 16;
+-	etiph->size = remain;
+-	etiph->offset = offset;
+-
+-	/*
+-	 * There is no header following an Etherip header
+-	 */
+-	*next_hdr = -1;
+-	return true;
+ }
+ 
+ /*
+--- a/ecm_tracker.h
++++ b/ecm_tracker.h
+@@ -108,7 +108,6 @@ enum ecm_tracker_ip_protocol_types {
+ 	ECM_TRACKER_IP_PROTOCOL_TYPE_IPV6_DO,
+ 	ECM_TRACKER_IP_PROTOCOL_TYPE_IPV6_HBH,		/* IPv6 hop-by-hop header */
+ #endif
+-	ECM_TRACKER_IP_PROTOCOL_TYPE_ETHERIP,
+ 	ECM_TRACKER_IP_PROTOCOL_TYPE_COUNT		/* Must be last, do not use */
+ };
+ typedef enum ecm_tracker_ip_protocol_types ecm_tracker_ip_protocol_type_t;
+--- a/frontends/cmn/ecm_non_ported_ipv6.c
++++ b/frontends/cmn/ecm_non_ported_ipv6.c
+@@ -121,7 +121,6 @@ static inline bool ecm_non_ported_ipv6_i
+ #if defined(ECM_INTERFACE_GRE_TAP_ENABLE) || defined(ECM_INTERFACE_GRE_TUN_ENABLE)
+ 	case IPPROTO_GRE:
+ #endif
+-	case IPPROTO_ETHERIP:
+ 	case IPPROTO_RAW:
+ 		return true;
+ 	}

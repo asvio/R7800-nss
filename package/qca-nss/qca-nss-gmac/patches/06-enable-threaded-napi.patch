@@ -1,0 +1,10 @@
+--- a/ipq806x/nss_gmac_tx_rx_offload.c
++++ b/ipq806x/nss_gmac_tx_rx_offload.c
+@@ -952,6 +952,7 @@ int nss_gmac_open(struct net_device *net
+ 		netif_napi_add(netdev, &gmacdev->napi, nss_gmac_poll,
+ 							NSS_GMAC_NAPI_BUDGET);
+ #endif
++		dev_set_threaded(netdev, true);
+ 		/* Initial the RX/TX ring */
+ 		dma_set_coherent_mask(dev, 0xffffffff);
+ 		nss_gmac_setup_rx_desc_queue(gmacdev, dev,
