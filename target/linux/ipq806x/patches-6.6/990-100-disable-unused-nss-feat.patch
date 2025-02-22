@@ -1,0 +1,16 @@
+--- a/arch/arm/boot/dts/qcom/qcom-ipq8064.dtsi
++++ b/arch/arm/boot/dts/qcom/qcom-ipq8064.dtsi
+@@ -917,12 +917,10 @@
+ 			qcom,vlan-enabled;
+ 			qcom,wlan-dataplane-offload-enabled;
+ 			qcom,wlanredirect-enabled;
+-			qcom,pxvlan-enabled;
+ 			qcom,vxlan-enabled;
+ 			qcom,match-enabled;
+ 			qcom,mirror-enabled;
+-			qcom,rmnet-enabled;
+-			qcom,clmap-enabled;
++			qcom,tstamp-enabled;
+ 		};
+ 
+ 		nss1: nss@40800000 {
