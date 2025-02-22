@@ -1,0 +1,654 @@
+--- a/nss_c2c_tx.c
++++ b/nss_c2c_tx.c
+@@ -334,6 +334,7 @@ static struct ctl_table nss_c2c_tx_table
+ 	{ }
+ };
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
+ static struct ctl_table nss_c2c_tx_dir[] = {
+ 	{
+ 		.procname		= "c2c_tx",
+@@ -360,6 +361,7 @@ static struct ctl_table nss_c2c_tx_root[
+ 	},
+ 	{ }
+ };
++#endif
+ 
+ static struct ctl_table_header *nss_c2c_tx_header;
+ 
+@@ -378,7 +380,11 @@ void nss_c2c_tx_register_sysctl(void)
+ 	/*
+ 	 * Register sysctl table.
+ 	 */
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	nss_c2c_tx_header = register_sysctl("dev/nss/c2c_tx", nss_c2c_tx_table);
++#else
+ 	nss_c2c_tx_header = register_sysctl_table(nss_c2c_tx_root);
++#endif
+ }
+ 
+ /*
+--- a/nss_core.c
++++ b/nss_core.c
+@@ -44,7 +44,7 @@
+  * following kernel versions. Before enabling the driver in new kernels,
+  * the skb recycle code must be checked against Linux skb handling.
+  *
+- * Tested on: 3.4, 3.10, 3.14, 3.18, 4.4 and 5.4
++ * Tested on: 3.4, 3.10, 3.14, 3.18, 4.4, 5.4, 5.10, 5.15 and 6.6
+  */
+ #if (!( \
+ (((LINUX_VERSION_CODE >= KERNEL_VERSION(3, 4, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(3, 5, 0)))) || \
+@@ -54,7 +54,9 @@
+ (((LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)))) || \
+ (((LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)))) || \
+ (((LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0)))) || \
+-(((LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(5, 16, 0))))))
++(((LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(5, 16, 0)))) || \
++(((LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)))) || \
++(((LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(6, 7, 0))))))
+ #error "Check skb recycle code in this file to match Linux version"
+ #endif
+ 
+--- a/nss_dma.c
++++ b/nss_dma.c
+@@ -378,6 +378,7 @@ static struct ctl_table nss_dma_table[]
+ 	{ }
+ };
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
+ static struct ctl_table nss_dma_dir[] = {
+ 	{
+ 		.procname		= "dma",
+@@ -404,6 +405,7 @@ static struct ctl_table nss_dma_root[] =
+ 	},
+ 	{ }
+ };
++#endif
+ 
+ static struct ctl_table_header *nss_dma_header;
+ 
+@@ -422,7 +424,11 @@ void nss_dma_register_sysctl(void)
+ 	/*
+ 	 * Register sysctl table.
+ 	 */
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	nss_dma_header = register_sysctl("dev/nss/dma", nss_dma_table);
++#else
+ 	nss_dma_header = register_sysctl_table(nss_dma_root);
++#endif
+ }
+ 
+ /*
+--- a/nss_hal/fsm9010/nss_hal_pvt.c
++++ b/nss_hal/fsm9010/nss_hal_pvt.c
+@@ -290,7 +290,11 @@ static int __nss_hal_request_irq(struct
+ 	}
+ 
+ 	int_ctx->irq = npd->irq[irq_num];
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi, 64);
++#else
+ 	netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi, 64);
++#endif
+ 	return 0;
+ }
+ 
+--- a/nss_hal/ipq50xx/nss_hal_pvt.c
++++ b/nss_hal/ipq50xx/nss_hal_pvt.c
+@@ -598,7 +598,11 @@ static int __nss_hal_request_irq(struct
+ 		return err;
+ 	}
+ 
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, napi_poll_cb, napi_wgt);
++#else
+ 	netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, napi_poll_cb, napi_wgt);
++#endif
+ 	int_ctx->cause = cause;
+ 	err = request_irq(irq, nss_hal_handle_irq, 0, irq_name, int_ctx);
+ 	if (err) {
+--- a/nss_hal/ipq60xx/nss_hal_pvt.c
++++ b/nss_hal/ipq60xx/nss_hal_pvt.c
+@@ -614,62 +614,102 @@ static int __nss_hal_request_irq(struct
+ 	irq_set_status_flags(irq, IRQ_DISABLE_UNLAZY);
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_EMPTY_BUFFER_SOS) {
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_non_queue, NSS_EMPTY_BUFFER_SOS_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_non_queue, NSS_EMPTY_BUFFER_SOS_PROCESSING_WEIGHT);
++#endif
+ 		int_ctx->cause = NSS_N2H_INTR_EMPTY_BUFFERS_SOS;
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_empty_buf_sos", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_EMPTY_BUFFER_QUEUE) {
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_EMPTY_BUFFER_RETURN_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_EMPTY_BUFFER_RETURN_PROCESSING_WEIGHT);
++#endif
+ 		int_ctx->cause = NSS_N2H_INTR_EMPTY_BUFFER_QUEUE;
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_empty_buf_queue", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_TX_UNBLOCKED) {
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_non_queue, NSS_TX_UNBLOCKED_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_non_queue, NSS_TX_UNBLOCKED_PROCESSING_WEIGHT);
++#endif
+ 		int_ctx->cause = NSS_N2H_INTR_TX_UNBLOCKED;
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss-tx-unblock", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_DATA_QUEUE_0) {
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#endif
+ 		int_ctx->cause = NSS_N2H_INTR_DATA_QUEUE_0;
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_queue0", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_DATA_QUEUE_1) {
+ 		int_ctx->cause = NSS_N2H_INTR_DATA_QUEUE_1;
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#endif
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_queue1", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_DATA_QUEUE_2) {
+ 		int_ctx->cause = NSS_N2H_INTR_DATA_QUEUE_2;
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#endif
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_queue2", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_DATA_QUEUE_3) {
+ 		int_ctx->cause = NSS_N2H_INTR_DATA_QUEUE_3;
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#endif
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_queue3", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_COREDUMP_COMPLETE) {
+ 		int_ctx->cause = NSS_N2H_INTR_COREDUMP_COMPLETE;
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_emergency, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_emergency, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#endif
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_coredump_complete", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_PAGED_EMPTY_BUFFER_SOS) {
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_non_queue, NSS_EMPTY_BUFFER_SOS_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_non_queue, NSS_EMPTY_BUFFER_SOS_PROCESSING_WEIGHT);
++#endif
+ 		int_ctx->cause = NSS_N2H_INTR_PAGED_EMPTY_BUFFERS_SOS;
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_paged_empty_buf_sos", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_PROFILE_DMA) {
+ 		int_ctx->cause = NSS_N2H_INTR_PROFILE_DMA;
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_sdma, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_sdma, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#endif
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_profile_dma", int_ctx);
+ 	}
+ 
+--- a/nss_hal/ipq806x/nss_hal_pvt.c
++++ b/nss_hal/ipq806x/nss_hal_pvt.c
+@@ -1183,7 +1183,11 @@ static int __nss_hal_request_irq(struct
+ 	}
+ 
+ 	int_ctx->irq = npd->irq[irq_num];
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi, 64);
++#else
+ 	netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi, 64);
++#endif
+ 
+ 	return 0;
+ }
+--- a/nss_hal/ipq807x/nss_hal_pvt.c
++++ b/nss_hal/ipq807x/nss_hal_pvt.c
+@@ -656,62 +656,102 @@ static int __nss_hal_request_irq(struct
+ 	irq_set_status_flags(irq, IRQ_DISABLE_UNLAZY);
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_EMPTY_BUFFER_SOS) {
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_non_queue, NSS_EMPTY_BUFFER_SOS_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_non_queue, NSS_EMPTY_BUFFER_SOS_PROCESSING_WEIGHT);
++#endif
+ 		int_ctx->cause = NSS_N2H_INTR_EMPTY_BUFFERS_SOS;
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_empty_buf_sos", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_EMPTY_BUFFER_QUEUE) {
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_EMPTY_BUFFER_RETURN_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_EMPTY_BUFFER_RETURN_PROCESSING_WEIGHT);
++#endif
+ 		int_ctx->cause = NSS_N2H_INTR_EMPTY_BUFFER_QUEUE;
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_empty_buf_queue", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_TX_UNBLOCKED) {
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_non_queue, NSS_TX_UNBLOCKED_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_non_queue, NSS_TX_UNBLOCKED_PROCESSING_WEIGHT);
++#endif
+ 		int_ctx->cause = NSS_N2H_INTR_TX_UNBLOCKED;
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss-tx-unblock", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_DATA_QUEUE_0) {
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#endif
+ 		int_ctx->cause = NSS_N2H_INTR_DATA_QUEUE_0;
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_queue0", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_DATA_QUEUE_1) {
+ 		int_ctx->cause = NSS_N2H_INTR_DATA_QUEUE_1;
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#endif
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_queue1", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_DATA_QUEUE_2) {
+ 		int_ctx->cause = NSS_N2H_INTR_DATA_QUEUE_2;
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#endif
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_queue2", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_DATA_QUEUE_3) {
+ 		int_ctx->cause = NSS_N2H_INTR_DATA_QUEUE_3;
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_queue, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#endif
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_queue3", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_COREDUMP_COMPLETE) {
+ 		int_ctx->cause = NSS_N2H_INTR_COREDUMP_COMPLETE;
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_emergency, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_emergency, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#endif
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_coredump_complete", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_PAGED_EMPTY_BUFFER_SOS) {
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_non_queue, NSS_EMPTY_BUFFER_SOS_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_non_queue, NSS_EMPTY_BUFFER_SOS_PROCESSING_WEIGHT);
++#endif
+ 		int_ctx->cause = NSS_N2H_INTR_PAGED_EMPTY_BUFFERS_SOS;
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_paged_empty_buf_sos", int_ctx);
+ 	}
+ 
+ 	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_PROFILE_DMA) {
+ 		int_ctx->cause = NSS_N2H_INTR_PROFILE_DMA;
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++		netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_sdma, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#else
+ 		netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, nss_core_handle_napi_sdma, NSS_DATA_COMMAND_BUFFER_PROCESSING_WEIGHT);
++#endif
+ 		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_profile_dma", int_ctx);
+ 	}
+ 
+--- a/nss_init.c
++++ b/nss_init.c
+@@ -584,6 +584,11 @@ static struct ctl_table nss_general_tabl
+ 	{ }
+ };
+ 
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++static struct ctl_table_header *nss_clock_header;
++static struct ctl_table_header *nss_skb_header;
++static struct ctl_table_header *nss_general_header;
++#else
+ static struct ctl_table nss_init_dir[] = {
+ #if (NSS_FREQ_SCALE_SUPPORT == 1)
+ 	{
+@@ -626,6 +631,7 @@ static struct ctl_table nss_root[] = {
+ };
+ 
+ static struct ctl_table_header *nss_dev_header;
++#endif
+ 
+ /*
+  * nss_init()
+@@ -734,7 +740,19 @@ static int __init nss_init(void)
+ 	/*
+ 	 * Register sysctl table.
+ 	 */
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	nss_general_header = register_sysctl("dev/nss/general", nss_general_table);
++
++#if (NSS_SKB_REUSE_SUPPORT == 1)
++	nss_skb_header = register_sysctl("dev/nss/skb_reuse", nss_skb_reuse_table);
++#endif
++
++#if (NSS_FREQ_SCALE_SUPPORT == 1)
++	nss_clock_header = register_sysctl("dev/nss/clock", nss_freq_table);
++#endif
++#else
+ 	nss_dev_header = register_sysctl_table(nss_root);
++#endif
+ 
+ 	/*
+ 	 * Registering sysctl for ipv4/6 specific config.
+@@ -887,8 +905,23 @@ static void __exit nss_cleanup(void)
+ {
+ 	nss_info("Exit NSS driver");
+ 
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	if (nss_general_header)
++		unregister_sysctl_table(nss_general_header);
++
++#if (NSS_SKB_REUSE_SUPPORT == 1)
++	if (nss_skb_header)
++		unregister_sysctl_table(nss_skb_header);
++#endif
++
++#if (NSS_FREQ_SCALE_SUPPORT == 1)
++	if (nss_clock_header)
++		unregister_sysctl_table(nss_clock_header);
++#endif
++#else
+ 	if (nss_dev_header)
+ 		unregister_sysctl_table(nss_dev_header);
++#endif
+ 
+ 	/*
+ 	 * Unregister n2h specific sysctl
+--- a/nss_ipv4.c
++++ b/nss_ipv4.c
+@@ -697,6 +697,7 @@ static struct ctl_table nss_ipv4_table[]
+ 	{ }
+ };
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
+ static struct ctl_table nss_ipv4_dir[] = {
+ 	{
+ 		.procname		= "ipv4cfg",
+@@ -723,6 +724,7 @@ static struct ctl_table nss_ipv4_root[]
+ 	},
+ 	{ }
+ };
++#endif
+ 
+ static struct ctl_table_header *nss_ipv4_header;
+ 
+@@ -738,7 +740,11 @@ void nss_ipv4_register_sysctl(void)
+ 	/*
+ 	 * Register sysctl table.
+ 	 */
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	nss_ipv4_header = register_sysctl("dev/nss/ipv4cfg", nss_ipv4_table);
++#else
+ 	nss_ipv4_header = register_sysctl_table(nss_ipv4_root);
++#endif
+ }
+ 
+ /*
+--- a/nss_ipv6.c
++++ b/nss_ipv6.c
+@@ -706,6 +706,7 @@ static struct ctl_table nss_ipv6_table[]
+ 	{ }
+ };
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
+ static struct ctl_table nss_ipv6_dir[] = {
+ 	{
+ 		.procname		= "ipv6cfg",
+@@ -732,6 +733,7 @@ static struct ctl_table nss_ipv6_root[]
+ 	},
+ 	{ }
+ };
++#endif
+ 
+ static struct ctl_table_header *nss_ipv6_header;
+ 
+@@ -747,7 +749,11 @@ void nss_ipv6_register_sysctl(void)
+ 	/*
+ 	 * Register sysctl table.
+ 	 */
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	nss_ipv6_header = register_sysctl("dev/nss/ipv6cfg", nss_ipv6_table);
++#else
+ 	nss_ipv6_header = register_sysctl_table(nss_ipv6_root);
++#endif
+ }
+ 
+ /*
+--- a/nss_n2h.c
++++ b/nss_n2h.c
+@@ -1862,6 +1862,7 @@ static struct ctl_table nss_n2h_table_mu
+ 	{ }
+ };
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
+ /*
+  * This table will be overwritten during single-core registration
+  */
+@@ -1891,6 +1892,7 @@ static struct ctl_table nss_n2h_root[] =
+ 	},
+ 	{ }
+ };
++#endif
+ 
+ static struct ctl_table_header *nss_n2h_header;
+ 
+@@ -2133,8 +2135,12 @@ void nss_n2h_single_core_register_sysctl
+ 	/*
+ 	 * Register sysctl table.
+ 	 */
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	nss_n2h_header = register_sysctl("dev/nss/n2hcfg", nss_n2h_table_single_core);
++#else
+ 	nss_n2h_dir[0].child = nss_n2h_table_single_core;
+ 	nss_n2h_header = register_sysctl_table(nss_n2h_root);
++#endif
+ }
+ 
+ /*
+@@ -2232,7 +2238,11 @@ void nss_n2h_multi_core_register_sysctl(
+ 	/*
+ 	 * Register sysctl table.
+ 	 */
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	nss_n2h_header = register_sysctl("dev/nss/n2hcfg", nss_n2h_table_multi_core);
++#else
+ 	nss_n2h_header = register_sysctl_table(nss_n2h_root);
++#endif
+ }
+ 
+ /*
+--- a/nss_ppe_vp.c
++++ b/nss_ppe_vp.c
+@@ -333,6 +333,7 @@ static struct ctl_table nss_ppe_vp_table
+ 	{ }
+ };
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
+ static struct ctl_table nss_ppe_vp_dir[] = {
+ 	{
+ 		.procname	= "ppe_vp",
+@@ -350,6 +351,7 @@ static struct ctl_table nss_ppe_vp_root_
+ 	},
+ 	{ }
+ };
++#endif
+ 
+ static struct ctl_table_header *nss_ppe_vp_procfs_header;
+ 
+@@ -362,7 +364,11 @@ void nss_ppe_vp_procfs_register(void)
+ 	/*
+ 	 * Register sysctl table.
+ 	 */
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	nss_ppe_vp_procfs_header = register_sysctl("dev/nss/ppe_vp", nss_ppe_vp_table);
++#else
+ 	nss_ppe_vp_procfs_header = register_sysctl_table(nss_ppe_vp_root_dir);
++#endif
+ }
+ 
+ /*
+--- a/nss_pppoe.c
++++ b/nss_pppoe.c
+@@ -353,6 +353,7 @@ static struct ctl_table nss_pppoe_table[
+ 	{ }
+ };
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
+ static struct ctl_table nss_pppoe_dir[] = {
+ 	{
+ 		.procname		= "pppoe",
+@@ -379,6 +380,7 @@ static struct ctl_table nss_pppoe_root[]
+ 	},
+ 	{ }
+ };
++#endif
+ 
+ static struct ctl_table_header *nss_pppoe_header;
+ 
+@@ -391,7 +393,11 @@ void nss_pppoe_register_sysctl(void)
+ 	/*
+ 	 * Register sysctl table.
+ 	 */
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	nss_pppoe_header = register_sysctl("dev/nss/pppoe", nss_pppoe_table);
++#else
+ 	nss_pppoe_header = register_sysctl_table(nss_pppoe_root);
++#endif
+ }
+ 
+ /*
+--- a/nss_project.c
++++ b/nss_project.c
+@@ -279,6 +279,7 @@ static struct ctl_table nss_project_tabl
+ 	{ }
+ };
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
+ static struct ctl_table nss_project_dir[] = {
+ 	{
+ 		.procname		= "project",
+@@ -305,6 +306,7 @@ static struct ctl_table nss_project_root
+ 	},
+ 	{ }
+ };
++#endif
+ 
+ static struct ctl_table_header *nss_project_header;
+ 
+@@ -314,7 +316,11 @@ static struct ctl_table_header *nss_proj
+  */
+ void nss_project_register_sysctl(void)
+ {
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	nss_project_header = register_sysctl("dev/nss/project", nss_project_table);
++#else
+ 	nss_project_header = register_sysctl_table(nss_project_root);
++#endif
+ }
+ 
+ /*
+--- a/nss_rps.c
++++ b/nss_rps.c
+@@ -557,6 +557,7 @@ static struct ctl_table nss_rps_table[]
+ 	{ }
+ };
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
+ static struct ctl_table nss_rps_dir[] = {
+ 	{
+ 		.procname		= "rps",
+@@ -583,6 +584,7 @@ static struct ctl_table nss_rps_root[] =
+ 	},
+ 	{ }
+ };
++#endif
+ 
+ static struct ctl_table_header *nss_rps_header;
+ 
+@@ -620,7 +622,11 @@ void nss_rps_register_sysctl(void)
+ 	/*
+ 	 * Register sysctl table.
+ 	 */
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	nss_rps_header = register_sysctl("dev/nss/rps", nss_rps_table);
++#else
+ 	nss_rps_header = register_sysctl_table(nss_rps_root);
++#endif
+ }
+ 
+ /*
+--- a/nss_stats.c
++++ b/nss_stats.c
+@@ -85,6 +85,7 @@ static struct ctl_table nss_stats_table[
+ 	{ }
+ };
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
+ static struct ctl_table nss_stats_dir[] = {
+ 	{
+ 		.procname		= "stats",
+@@ -111,6 +112,8 @@ static struct ctl_table nss_stats_root[]
+ 	},
+ 	{ }
+ };
++#endif
++
+ static struct ctl_table_header *nss_stats_header;
+ 
+ /*
+@@ -122,7 +125,11 @@ void nss_stats_register_sysctl(void)
+ 	/*
+ 	 * Register sysctl table.
+ 	 */
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
++	nss_stats_header = register_sysctl("dev/nss/stats", nss_stats_table);
++#else
+ 	nss_stats_header = register_sysctl_table(nss_stats_root);
++#endif
+ }
+ 
+ /*
