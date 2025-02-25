@@ -15,7 +15,7 @@ Signed-off-by: Tallapragada Kalyan <quic_ktallapr@quicinc.com>
 
 --- a/include/linux/skbuff.h
 +++ b/include/linux/skbuff.h
-@@ -992,6 +992,8 @@ struct sk_buff {
+@@ -990,6 +990,8 @@ struct sk_buff {
  	__u8			csum_not_inet:1;
  #endif
  	__u8			fast_forwarded:1;
