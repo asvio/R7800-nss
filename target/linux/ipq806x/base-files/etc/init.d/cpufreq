@@ -24,8 +24,8 @@ ipq806x_power_auto() {
 	# kraits cannot operate at 384MHz when L2 is at 1GHz.
 	#
 	# The impact on idle-state power with this change is about ~40-45mW.
-	# echo "800000" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
-	# echo "800000" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq
+	echo "800000" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+	echo "800000" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq
 
 	# Change sampling rate for frequency scaling decisions to 0,5s, from 10 ms
 	echo "500000" > /sys/devices/system/cpu/cpufreq/ondemand/sampling_rate
