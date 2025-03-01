@@ -104,7 +104,7 @@ Signed-off-by: Murat Sezgin <quic_msezgin@quicinc.com>
  	const struct net_device_ops *netdev_ops;
  	const struct xdp_metadata_ops *xdp_metadata_ops;
  	int			ifindex;
-@@ -5245,6 +5274,11 @@ static inline bool netif_is_failover_sla
+@@ -5247,6 +5276,11 @@ static inline bool netif_is_failover_sla
  	return dev->priv_flags & IFF_FAILOVER_SLAVE;
  }
  

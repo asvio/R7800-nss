@@ -17,7 +17,7 @@ Signed-off-by: Tushar Ganatra <quic_tganatra@quicinc.com>
 
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -4474,6 +4474,11 @@ int __dev_queue_xmit(struct sk_buff *skb
+@@ -4505,6 +4505,11 @@ int __dev_queue_xmit(struct sk_buff *skb
  	skb_reset_mac_header(skb);
  	skb_assert_len(skb);
  
