@@ -11,7 +11,7 @@ Signed-off-by: Ratheesh Kannoth <quic_rkannoth@quicinc.com>
 
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -5455,12 +5455,6 @@ another_round:
+@@ -5486,12 +5486,6 @@ another_round:
  		}
  	}
  
@@ -24,7 +24,7 @@ Signed-off-by: Ratheesh Kannoth <quic_rkannoth@quicinc.com>
  	fast_recv = rcu_dereference(athrs_fast_nat_recv);
  	if (fast_recv) {
  		if (fast_recv(skb)) {
-@@ -5469,6 +5463,12 @@ another_round:
+@@ -5500,6 +5494,12 @@ another_round:
  		}
  	}
  

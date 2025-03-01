@@ -26,7 +26,7 @@ Signed-off-by: Tallapragada Kalyan <quic_ktallapr@quicinc.com>
  #if defined(CONFIG_NET_SCHED) || defined(CONFIG_NET_XGRESS)
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -4305,6 +4305,144 @@ struct netdev_queue *netdev_core_pick_tx
+@@ -4336,6 +4336,144 @@ struct netdev_queue *netdev_core_pick_tx
  }
  
  /**
