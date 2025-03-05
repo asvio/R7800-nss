@@ -1,6 +1,6 @@
 --- a/nss_dynamic_interface.c
 +++ b/nss_dynamic_interface.c
-@@ -226,7 +226,7 @@ int nss_dynamic_interface_alloc_node(enu
+@@ -223,7 +223,7 @@ int nss_dynamic_interface_alloc_node(enu
  	core_id = nss_top_main.dynamic_interface_table[type];
  	nss_ctx = (struct nss_ctx_instance *)&nss_top_main.nss[core_id];
  	di_data.if_num = -1;
@@ -9,7 +9,7 @@
  	init_completion(&di_data.complete);
  
  	nss_dynamic_interface_msg_init(&ndim, NSS_DYNAMIC_INTERFACE, NSS_DYNAMIC_INTERFACE_ALLOC_NODE,
-@@ -285,7 +285,7 @@ nss_tx_status_t nss_dynamic_interface_de
+@@ -282,7 +282,7 @@ nss_tx_status_t nss_dynamic_interface_de
  
  	core_id = nss_top_main.dynamic_interface_table[type];
  	nss_ctx = (struct nss_ctx_instance *)&nss_top_main.nss[core_id];
@@ -50,7 +50,7 @@
  EXPORT_SYMBOL(nss_lag_tx_slave_state);
 --- a/nss_n2h.c
 +++ b/nss_n2h.c
-@@ -1153,16 +1153,16 @@ static nss_tx_status_t nss_n2h_mitigatio
+@@ -1150,16 +1150,16 @@ static nss_tx_status_t nss_n2h_mitigatio
  	/*
  	 * ACK/NACK received from NSS FW
  	 */
@@ -70,7 +70,7 @@
  }
  
  static inline void nss_n2h_buf_pool_free(struct nss_n2h_buf_pool *buf_pool)
-@@ -1234,7 +1234,7 @@ static nss_tx_status_t nss_n2h_buf_pool_
+@@ -1231,7 +1231,7 @@ static nss_tx_status_t nss_n2h_buf_pool_
  		/*
  		 * ACK/NACK received from NSS FW
  		 */
@@ -79,7 +79,7 @@
  
  			nss_n2h_buf_pool_free(buf_pool);
  			goto failure;
-@@ -1243,10 +1243,10 @@ static nss_tx_status_t nss_n2h_buf_pool_
+@@ -1240,10 +1240,10 @@ static nss_tx_status_t nss_n2h_buf_pool_
  		up(&nss_n2h_bufcp[core_num].sem);
  	} while(num_pages);
  
@@ -92,7 +92,7 @@
  }
  
  /*
-@@ -1545,7 +1545,7 @@ static nss_tx_status_t nss_n2h_host_bp_c
+@@ -1542,7 +1542,7 @@ static nss_tx_status_t nss_n2h_host_bp_c
  	if (nss_tx_status != NSS_TX_SUCCESS) {
  		nss_warning("%px: nss_tx error setting back pressure\n", nss_ctx);
  		up(&nss_n2h_host_bp_cfg_pvt.sem);
@@ -101,7 +101,7 @@
  	}
  
  	/*
-@@ -1555,7 +1555,7 @@ static nss_tx_status_t nss_n2h_host_bp_c
+@@ -1552,7 +1552,7 @@ static nss_tx_status_t nss_n2h_host_bp_c
  	if (ret == 0) {
  		nss_warning("%px: Waiting for ack timed out\n", nss_ctx);
  		up(&nss_n2h_host_bp_cfg_pvt.sem);
@@ -110,7 +110,7 @@
  	}
  
  	/*
-@@ -1563,11 +1563,11 @@ static nss_tx_status_t nss_n2h_host_bp_c
+@@ -1560,11 +1560,11 @@ static nss_tx_status_t nss_n2h_host_bp_c
  	 */
  	if (nss_n2h_host_bp_cfg_pvt.response == NSS_FAILURE) {
  		up(&nss_n2h_host_bp_cfg_pvt.sem);

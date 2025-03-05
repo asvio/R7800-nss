@@ -1,6 +1,6 @@
 --- a/nss_c2c_tx.c
 +++ b/nss_c2c_tx.c
-@@ -334,6 +334,7 @@ static struct ctl_table nss_c2c_tx_table
+@@ -331,6 +331,7 @@ static struct ctl_table nss_c2c_tx_table
  	{ }
  };
  
@@ -8,7 +8,7 @@
  static struct ctl_table nss_c2c_tx_dir[] = {
  	{
  		.procname		= "c2c_tx",
-@@ -360,6 +361,7 @@ static struct ctl_table nss_c2c_tx_root[
+@@ -357,6 +358,7 @@ static struct ctl_table nss_c2c_tx_root[
  	},
  	{ }
  };
@@ -16,7 +16,7 @@
  
  static struct ctl_table_header *nss_c2c_tx_header;
  
-@@ -378,7 +380,11 @@ void nss_c2c_tx_register_sysctl(void)
+@@ -375,7 +377,11 @@ void nss_c2c_tx_register_sysctl(void)
  	/*
  	 * Register sysctl table.
  	 */
@@ -94,20 +94,6 @@
  	return 0;
  }
  
---- a/nss_hal/ipq50xx/nss_hal_pvt.c
-+++ b/nss_hal/ipq50xx/nss_hal_pvt.c
-@@ -598,7 +598,11 @@ static int __nss_hal_request_irq(struct
- 		return err;
- 	}
- 
-+#if (LINUX_VERSION_CODE > KERNEL_VERSION(6, 1, 0))
-+	netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, napi_poll_cb, napi_wgt);
-+#else
- 	netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, napi_poll_cb, napi_wgt);
-+#endif
- 	int_ctx->cause = cause;
- 	err = request_irq(irq, nss_hal_handle_irq, 0, irq_name, int_ctx);
- 	if (err) {
 --- a/nss_hal/ipq60xx/nss_hal_pvt.c
 +++ b/nss_hal/ipq60xx/nss_hal_pvt.c
 @@ -614,62 +614,102 @@ static int __nss_hal_request_irq(struct
@@ -460,7 +446,7 @@
  /*
 --- a/nss_n2h.c
 +++ b/nss_n2h.c
-@@ -1862,6 +1862,7 @@ static struct ctl_table nss_n2h_table_mu
+@@ -1859,6 +1859,7 @@ static struct ctl_table nss_n2h_table_mu
  	{ }
  };
  
@@ -468,7 +454,7 @@
  /*
   * This table will be overwritten during single-core registration
   */
-@@ -1891,6 +1892,7 @@ static struct ctl_table nss_n2h_root[] =
+@@ -1888,6 +1889,7 @@ static struct ctl_table nss_n2h_root[] =
  	},
  	{ }
  };
@@ -476,7 +462,7 @@
  
  static struct ctl_table_header *nss_n2h_header;
  
-@@ -2133,8 +2135,12 @@ void nss_n2h_single_core_register_sysctl
+@@ -2131,8 +2133,12 @@ void nss_n2h_single_core_register_sysctl
  	/*
  	 * Register sysctl table.
  	 */
@@ -489,7 +475,7 @@
  }
  
  /*
-@@ -2232,7 +2238,11 @@ void nss_n2h_multi_core_register_sysctl(
+@@ -2230,7 +2236,11 @@ void nss_n2h_multi_core_register_sysctl(
  	/*
  	 * Register sysctl table.
  	 */

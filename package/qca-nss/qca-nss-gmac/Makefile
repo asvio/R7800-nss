@@ -11,7 +11,7 @@ PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-gmac.git
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_DATE:=2023-06-01
 PKG_SOURCE_VERSION:=171767947467662f2407d0cfff26dfb136c3fb4a
-PKG_MIRROR_HASH:=3c59139b20bc607f71e8a20e14ea63e6520b2f321347cfa7b3532c15120c9947
+PKG_MIRROR_HASH:=21f8a0ce6672f9dfae9eca6490b19e49cfc51f6fdc5ba48db28c20a92af81822
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -40,9 +40,8 @@ EXTRA_CFLAGS+= \
 	-I$(PKG_BUILD_DIR)/nss_hal/$(BOARD)
 
 define Build/Compile
-	$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
-		$(KERNEL_MAKE_FLAGS) \
-		$(PKG_MAKE_FLAGS) \
+	$(KERNEL_MAKE) \
+		SUBDIRS="$(PKG_BUILD_DIR)" \
 		M="$(PKG_BUILD_DIR)" \
 		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
 		modules
