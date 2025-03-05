@@ -1,4 +1,4 @@
-# NHSS.QSDK.12.4.5.r2
+# NHSS.QSDK.11.2 - 12.4.5.r2
 # by SqTER
 
 include $(TOPDIR)/rules.mk
@@ -317,9 +317,7 @@ define Build/InstallDev
 endef
 
 define Build/Compile
-	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" $(strip $(ECM_MAKE_OPTS)) \
-		$(KERNEL_MAKE_FLAGS) \
-		$(PKG_MAKE_FLAGS) \
+	$(KERNEL_MAKE) $(strip $(ECM_MAKE_OPTS)) \
 		M="$(PKG_BUILD_DIR)" \
 		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" SoC="$(subtarget)" \
 		EXAMPLES_BUILD_PCC="$(CONFIG_QCA_NSS_ECM_EXAMPLES_PCC)" \
