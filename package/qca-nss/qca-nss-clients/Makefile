@@ -1,4 +1,4 @@
-# NHSS.QSDK.12.2
+# NHSS.QSDK 11.2 - 12.2
 # by SqTER
 
 include $(TOPDIR)/rules.mk
@@ -7,10 +7,10 @@ include $(INCLUDE_DIR)/kernel.mk
 PKG_NAME:=qca-nss-clients
 PKG_RELEASE:=2
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-clients.git
-PKG_SOURCE_DATE:=2023-06-01
+PKG_SOURCE_DATE:=2020-10-29
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=4cc5d7687c69ef1fbc53d5492d9d672d2d8ef030
-PKG_MIRROR_HASH:=cc1904bd90a0fc137b114b3232245c973e84068ea52caeaac66c49d958739a4e
+PKG_SOURCE_VERSION:=ef082a735fad96bd2f6f59b94d6ea81defc4796e
+PKG_MIRROR_HASH:=9375f2bbdd17826b6ddebc77607ec73c98626570243a9831a1e34e1051eb436c
 PKG_BUILD_DEPENDS:=qca-nss-drv
 PKG_BUILD_PARALLEL:=1
 
@@ -108,7 +108,7 @@ define KernelPackage/qca-nss-drv-tunipip6
   TITLE:=Kernel driver for NSS (connection manager) - DS-lite and ipip6 Tunnel
   DEPENDS:=+@NSS_DRV_TUNIPIP6_ENABLE +kmod-iptunnel6 +kmod-ip6-tunnel \
 		+PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
-  FILES:=$(PKG_BUILD_DIR)/qca-nss-tunipip6.ko
+  FILES:=$(PKG_BUILD_DIR)/tunipip6/qca-nss-tunipip6.ko
   AUTOLOAD:=$(call AutoLoad,60,qca-nss-tunipip6)
 endef
 
@@ -210,7 +210,7 @@ define KernelPackage/qca-nss-drv-igs
   SUBMENU:=Network Devices
   TITLE:=Action for offloading traffic to an IFB interface to perform ingress shaping.
   DEPENDS:=@TARGET_ipq806x||TARGET_ipq_ipq807x||TARGET_ipq_ipq807x_64||TARGET_ipq_ipq60xx||TARGET_ipq_ipq60xx_64||TARGET_ipq_ipq50xx||TARGET_ipq_ipq50xx_64 \
-	+@NSS_DRV_IGS_ENABLE +kmod-sched-core +kmod-ifb +kmod-qca-nss-drv-qdisc \
+	+@NSS_DRV_IGS_ENABLE +kmod-sched-core +kmod-nf-conntrack +kmod-ifb +kmod-qca-nss-drv-qdisc \
 	+PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
   FILES:=$(PKG_BUILD_DIR)/nss_qdisc/igs/act_nssmirred.ko
 endef
@@ -467,11 +467,7 @@ endif
 # endif
 
 define Build/Compile
-	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" $(strip $(MAKE_OPTS)) \
-		CROSS_COMPILE="$(TARGET_CROSS)" \
-		ARCH="$(LINUX_KARCH)" \
-		$(KERNEL_MAKE_FLAGS) \
-		$(PKG_MAKE_FLAGS) \
+	$(KERNEL_MAKE) $(strip $(MAKE_OPTS)) \
 		M="$(PKG_BUILD_DIR)" \
 		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
 		SoC="$(subtarget)" \
