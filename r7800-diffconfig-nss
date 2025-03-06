@@ -17,20 +17,22 @@ CONFIG_ATH10K_THERMAL=y
 CONFIG_FEED_sqm_scripts_nss=n
 
 # NSS Drivers
+CONFIG_PACKAGE_kmod-nss-ifb=y
 CONFIG_PACKAGE_kmod-qca-mcs=y
 CONFIG_PACKAGE_kmod-qca-nss-drv=y
+CONFIG_PACKAGE_kmod-qca-nss-drv-igs=y
 CONFIG_PACKAGE_kmod-qca-nss-drv-pppoe=y
-CONFIG_PACKAGE_kmod-qca-nss-ecm-standard=y
-CONFIG_PACKAGE_kmod-qca-nss-gmac=y
-CONFIG_PACKAGE_MAC80211_NSS_SUPPORT=y
-
-CONFIG_PACKAGE_kmod-nss-ifb=y
+CONFIG_PACKAGE_kmod-qca-nss-drv-pptp=y
 CONFIG_PACKAGE_kmod-qca-nss-drv-qdisc=y
-# CONFIG_PACKAGE_kmod-qca-nss-drv-tunipip6=y
+CONFIG_PACKAGE_kmod-qca-nss-drv-tun6rd=y
+CONFIG_PACKAGE_kmod-qca-nss-drv-tunipip6=y
+CONFIG_PACKAGE_kmod-qca-nss-gmac=y
+CONFIG_PACKAGE_kmod-qca-nss-ecm-standard=y
+CONFIG_PACKAGE_MAC80211_NSS_SUPPORT=y
+CONFIG_PACKAGE_MAC80211_DEBUGFS=y
+
 # CONFIG_PACKAGE_kmod-qca-nss-drv-l2tpv2=y
-# CONFIG_PACKAGE_kmod-qca-nss-drv-pptp=y
 # CONFIG_PACKAGE_kmod-qca-nss-crypto=y
-# CONFIG_PACKAGE_MAC80211_DEBUGFS=y
 
 ## Luci app
 CONFIG_PACKAGE_luci=y
