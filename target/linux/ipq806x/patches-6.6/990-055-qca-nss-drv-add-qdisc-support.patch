@@ -8,7 +8,7 @@
   *	@tc_at_ingress: used within tc_classify to distinguish in/egress
   *	@redirected: packet was redirected by packet classifier
   *	@from_ingress: packet was redirected from the ingress path
-@@ -970,6 +971,12 @@ struct sk_buff {
+@@ -970,6 +971,10 @@ struct sk_buff {
  	__u8			offload_fwd_mark:1;
  	__u8			offload_l3_fwd_mark:1;
  #endif
