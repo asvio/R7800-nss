@@ -1,0 +1,69 @@
+From c8f7549b4a1d08cc6a894a39c31eab8fcaf9cfdd Mon Sep 17 00:00:00 2001
+From: Subhash Kumar Katnapally <quic_skatnapa@quicinc.com>
+Date: Mon, 10 Jul 2023 18:43:50 +0530
+Subject: [PATCH 247/500] net: tc filter/taps support for sfe path
+
+Added sysctl to toggle filter support in sfe path.
+
+Change-Id: I724a96283a7e3436c98505e2da94bf84bc05d5b8
+Signed-off-by: Subhash Kumar Katnapally <quic_skatnapa@quicinc.com>
+---
+ net/core/dev.c | 33 ++++++++++++++++++++++++++++-----
+ 1 file changed, 28 insertions(+), 5 deletions(-)
+
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -2128,6 +2128,9 @@ static int call_netdevice_notifiers_mtu(
+ 	return call_netdevice_notifiers_info(val, &info.info);
+ }
+ 
++bool fast_tc_filter = false;
++EXPORT_SYMBOL_GPL(fast_tc_filter);
++
+ #ifdef CONFIG_NET_INGRESS
+ static DEFINE_STATIC_KEY_FALSE(ingress_needed_key);
+ 
+@@ -5574,11 +5577,13 @@ another_round:
+ 			goto out;
+ 	}
+ 
+-	fast_recv = rcu_dereference(athrs_fast_nat_recv);
+-	if (fast_recv) {
+-		if (fast_recv(skb)) {
+-			ret = NET_RX_SUCCESS;
+-			goto out;
++	if (likely(!fast_tc_filter)) {
++		fast_recv = rcu_dereference(athrs_fast_nat_recv);
++		if (fast_recv) {
++			if (fast_recv(skb)) {
++				ret = NET_RX_SUCCESS;
++				goto out;
++			}
+ 		}
+ 	}
+ 
+@@ -5634,6 +5639,24 @@ skip_classify:
+ 			goto out;
+ 	}
+ 
++	if (unlikely(!fast_tc_filter)) {
++		goto skip_fast_recv;
++	}
++
++	fast_recv = rcu_dereference(athrs_fast_nat_recv);
++	if (fast_recv) {
++		if (pt_prev) {
++			ret = deliver_skb(skb, pt_prev, orig_dev);
++			pt_prev = NULL;
++		}
++
++		if (fast_recv(skb)) {
++			ret = NET_RX_SUCCESS;
++			goto out;
++		}
++	}
++skip_fast_recv:
++
+ 	rx_handler = rcu_dereference(skb->dev->rx_handler);
+ 	if (rx_handler) {
+ 		if (pt_prev) {
