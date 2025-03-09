@@ -20,7 +20,23 @@
  #endif
 --- a/l2tp/l2tpv2/nss_connmgr_l2tpv2.c
 +++ b/l2tp/l2tpv2/nss_connmgr_l2tpv2.c
-@@ -954,7 +954,11 @@ int __init nss_connmgr_l2tpv2_init_modul
+@@ -912,6 +912,7 @@ static struct ctl_table nss_connmgr_l2tp
+ /*
+  * nss_connmgr_l2tpv2_dir
+  */
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0))
+ static struct ctl_table nss_connmgr_l2tpv2_dir[] = {
+ 	{
+ 		.procname		= "l2tpv2",
+@@ -933,6 +934,7 @@ static struct ctl_table nss_connmgr_l2tp
+ 	{ }
+ };
+ 
++#endif
+ /*
+  * Linux Net device Notifier
+  */
+@@ -954,7 +956,11 @@ int __init nss_connmgr_l2tpv2_init_modul
  		return 0;
  	}
  #endif
