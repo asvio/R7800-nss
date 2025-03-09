@@ -65,10 +65,10 @@ config NSS_DRV_IPV6_REASM_ENABLE
 	bool
 	default n
 	prompt "Enable IPV6_REASM"
-#config NSS_DRV_L2TP_ENABLE
-#	bool
-#	default n
-#	prompt "Enable L2TP"
+config NSS_DRV_L2TP_ENABLE
+	bool
+	default n
+	prompt "Enable L2TP"
 #config NSS_DRV_LAG_ENABLE
 #	bool
 #	default n
