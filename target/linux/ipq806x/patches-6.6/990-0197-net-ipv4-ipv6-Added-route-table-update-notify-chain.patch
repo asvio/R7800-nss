@@ -37,7 +37,7 @@ Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
  	const struct dst_entry *dst = skb_dst(skb);
 --- a/include/net/route.h
 +++ b/include/net/route.h
-@@ -237,6 +237,9 @@ struct rtable *rt_dst_alloc(struct net_d
+@@ -238,6 +238,9 @@ struct rtable *rt_dst_alloc(struct net_d
  			    unsigned int flags, u16 type, bool noxfrm);
  struct rtable *rt_dst_clone(struct net_device *dev, struct rtable *rt);
  

@@ -15,7 +15,7 @@ Signed-off-by: Ken Zhu <quic_guigenz@quicinc.com>
 
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
-@@ -3183,6 +3183,8 @@ static inline int dev_direct_xmit(struct
+@@ -3163,6 +3163,8 @@ static inline int dev_direct_xmit(struct
  	return ret;
  }
  
