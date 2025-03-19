@@ -38,21 +38,21 @@ define KernelPackage/qca-nss-drv-tun6rd/description
 Kernel modules for NSS connection manager - Support for 6rd tunnel
 endef
 
-#define KernelPackage/qca-nss-drv-l2tpv2
-#  SECTION:=kernel
-#  CATEGORY:=Kernel modules
-#  SUBMENU:=Network Devices
-#  TITLE:=Kernel driver for NSS (connection manager) - l2tp
-#  DEPENDS:=+@NSS_DRV_L2TP_ENABLE +kmod-ppp +kmod-l2tp \
-#		+PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
-#  FILES:=$(PKG_BUILD_DIR)/l2tp/l2tpv2/qca-nss-l2tpv2.ko
-#  KCONFIG:=CONFIG_L2TP=y
-#  AUTOLOAD:=$(call AutoLoad,51,qca-nss-l2tpv2)
-#endef
+define KernelPackage/qca-nss-drv-l2tpv2
+  SECTION:=kernel
+  CATEGORY:=Kernel modules
+  SUBMENU:=Network Devices
+  TITLE:=Kernel driver for NSS (connection manager) - l2tp
+  DEPENDS:=+@NSS_DRV_L2TP_ENABLE +kmod-ppp +kmod-l2tp \
+		+PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
+  FILES:=$(PKG_BUILD_DIR)/l2tp/l2tpv2/qca-nss-l2tpv2.ko
+  KCONFIG:=CONFIG_L2TP=y
+  AUTOLOAD:=$(call AutoLoad,51,qca-nss-l2tpv2)
+endef
 
-#define KernelPackage/qca-nss-drv-l2tp/description
-#Kernel modules for NSS connection manager - Support for l2tp tunnel
-#endef
+define KernelPackage/qca-nss-drv-l2tp/description
+Kernel modules for NSS connection manager - Support for l2tp tunnel
+endef
 
 define KernelPackage/qca-nss-drv-pptp
   SECTION:=kernel
@@ -387,10 +387,10 @@ ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-tun6rd),)
 MAKE_OPTS+=tun6rd=m
 endif
 
-#ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-l2tpv2),)
-#MAKE_OPTS+=l2tpv2=y
-#EXTRA_CFLAGS += -DNSS_L2TPV2_ENABLED
-#endif
+ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-l2tpv2),)
+MAKE_OPTS+=l2tpv2=y
+EXTRA_CFLAGS += -DNSS_L2TPV2_ENABLED
+endif
 
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-pptp),)
 MAKE_OPTS+=pptp=y
@@ -476,7 +476,7 @@ endef
 
 $(eval $(call KernelPackage,qca-nss-drv-profile))
 $(eval $(call KernelPackage,qca-nss-drv-tun6rd))
-#$(eval $(call KernelPackage,qca-nss-drv-l2tpv2))
+$(eval $(call KernelPackage,qca-nss-drv-l2tpv2))
 $(eval $(call KernelPackage,qca-nss-drv-pptp))
 $(eval $(call KernelPackage,qca-nss-drv-pppoe))
 $(eval $(call KernelPackage,qca-nss-drv-tunipip6))
