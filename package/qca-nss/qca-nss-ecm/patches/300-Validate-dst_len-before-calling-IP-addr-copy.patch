@@ -1,0 +1,91 @@
+From a7c2db4fbccb5199ea3f3e2ce17cbd8cbce43924 Mon Sep 17 00:00:00 2001
+From: Amitesh Anand <quic_amitesh@quicinc.com>
+Date: Fri, 12 Apr 2024 17:07:38 +0530
+Subject: [PATCH] [qca-nss-ecm] Validate dst_len before calling IP addr copy
+
+Incorrect lenght passed for as parameter ipv6_addr_prefix(),
+which crashes during memcpy. Linux mandates the caller to
+ensure len is between 0 to 128.
+
+Crash signature:
+PC points to "fortify_panic+0x18/0x1c"
+LR points to "fortify_panic+0x18/0x1c".
+The Backtrace obtained is as follows:
+fortify_panic+0x18/0x1c
+ecm_db_init+0x51c/0x948 [ecm]
+notifier_call_chain+0x64/0x84
+atomic_notifier_call_chain+0x38/0x54
+ip6_route_add+0x6c/0xc0
+addrconf_prefix_route+0xd8/0x10c
+inet6_rtm_newaddr+0x42c/0x5a4
+rtnetlink_rcv_msg+0x260/0x2ac
+netlink_rcv_skb+0x9c/0x108
+rtnetlink_rcv+0x14/0x1c
+netlink_unicast+0x168/0x244
+netlink_sendmsg+0x35c/0x3b8
+__sock_sendmsg+0x18/0x2c
+____sys_sendmsg+0x27c/0x31c
+___sys_sendmsg+0x74/0xbc
+__sys_sendmsg+0x64/0xb0
+__arm64_sys_sendmsg+0x1c/0x24
+el0_svc_common.constprop.0+0xc8/0x128
+do_el0_svc+0x18/0x20
+el0_svc+0x18/0x40
+el0t_64_sync_handler+0x88/0x124
+
+Change-Id: I7547eedb1f2af70180ca22d373c5cd6426510776
+Signed-off-by: Amitesh Anand <quic_amitesh@quicinc.com>
+---
+ ecm_db/ecm_db.c | 19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
+
+diff --git a/ecm_db/ecm_db.c b/ecm_db/ecm_db.c
+index 722d6d5e..201f2b91 100644
+--- a/ecm_db/ecm_db.c
++++ b/ecm_db/ecm_db.c
+@@ -283,6 +283,7 @@ static int ecm_db_ipv6_route_table_update_event(struct notifier_block *nb,
+ 		struct net_device *fc_dev;
+ 		bool is_dest_ip_match = true;
+ 		ecm_db_obj_dir_t obj_dir = ECM_DB_OBJ_DIR_TO;
++		int fc_dst_len = cfg->fc_dst_len;
+ 
+ 		if (ci->ip_version != 6) {
+ 			goto next;
+@@ -297,10 +298,19 @@ static int ecm_db_ipv6_route_table_update_event(struct notifier_block *nb,
+ 		/*
+ 		 * Compute ECM connection's prefix destination address by masking it with the
+ 		 * route config's destination address prefix length.
++		 *
++		 * Validate dst_len to be 0 <= len <= 128
+ 		 */
+-		ipv6_addr_prefix(&prefix_addr, &ecm_in6, cfg->fc_dst_len);
++		if (cfg->fc_dst_len > 128) {
++			fc_dst_len = 128;
++		} else if (cfg->fc_dst_len < 0){
++			fc_dst_len = 0;
++		}
++
++		ipv6_addr_prefix(&prefix_addr, &ecm_in6, fc_dst_len);
+ 
+-		DEBUG_TRACE("dest addr prefix: %pI6 prefix_len: %d ecm_in6: %pI6\n", &prefix_addr, cfg->fc_dst_len, &ecm_in6);
++		DEBUG_TRACE("dest addr prefix: %pI6 prefix_len: %d(cfg=%d) ecm_in6: %pI6\n",
++				&prefix_addr, fc_dst_len, cfg->fc_dst_len, &ecm_in6);
+ 
+ 		/*
+ 		 * Compare the ECM connection's destination address prefix with the route config's
+@@ -326,9 +336,10 @@ static int ecm_db_ipv6_route_table_update_event(struct notifier_block *nb,
+ 			 * Compute ECM connection's prefix source address by masking it with the
+ 			 * route config's destination address prefix length.
+ 			 */
+-			ipv6_addr_prefix(&prefix_addr, &ecm_in6, cfg->fc_dst_len);
++			ipv6_addr_prefix(&prefix_addr, &ecm_in6, fc_dst_len);
+ 
+-			DEBUG_TRACE("src addr prefix: %pI6 prefix_len: %d ecm_in6: %pI6\n", &prefix_addr, cfg->fc_dst_len, &ecm_in6);
++			DEBUG_TRACE("src addr prefix: %pI6 prefix_len: %d(cfg=%d) ecm_in6: %pI6\n",
++					&prefix_addr, fc_dst_len, cfg->fc_dst_len, &ecm_in6);
+ 
+ 			if (ipv6_addr_cmp(&prefix_addr, &cfg->fc_dst)) {
+ 				DEBUG_TRACE("src addr prefix: %pI6 not equal to cfg->fc_dst: %pI6, go to next connection\n", &prefix_addr, &cfg->fc_dst);
+-- 
+GitLab
+
