@@ -1,9 +1,11 @@
 --- a/crypto/authenc.c
 +++ b/crypto/authenc.c
-@@ -415,6 +415,8 @@ static int crypto_authenc_create(struct
+@@ -415,6 +415,10 @@ static int crypto_authenc_create(struct
  		     enc->base.cra_driver_name) >= CRYPTO_MAX_ALG_NAME)
  		goto err_free_inst;
  
++	// inst->alg.base.cra_flags = (auth_base->cra_flags |
++ 	//			    enc->base.cra_flags) & CRYPTO_ALG_ASYNC;
 +	inst->alg.base.cra_flags |= (auth_base->cra_flags |
 +				    enc->base.cra_flags) & CRYPTO_ALG_NOSUPP_SG;
  	inst->alg.base.cra_priority = enc->base.cra_priority * 10 +
@@ -23,6 +25,18 @@
   * The algorithm may allocate memory during request processing, i.e. during
   * encryption, decryption, or hashing.  Users can request an algorithm with this
   * flag unset if they can't handle memory allocation failures.
+@@ -462,6 +467,11 @@ static inline const char *crypto_tfm_alg
+ 	return tfm->__crt_alg->cra_driver_name;
+ }
+ 
++static inline u32 crypto_tfm_alg_flags(struct crypto_tfm *tfm)
++{
++	return tfm->__crt_alg->cra_flags & ~CRYPTO_ALG_TYPE_MASK;
++}
++
+ static inline unsigned int crypto_tfm_alg_blocksize(struct crypto_tfm *tfm)
+ {
+ 	return tfm->__crt_alg->cra_blocksize;
 --- a/net/ipv4/esp4.c
 +++ b/net/ipv4/esp4.c
 @@ -657,6 +657,7 @@ static int esp_output(struct xfrm_state
@@ -37,7 +51,7 @@
  	aead = x->data;
  	alen = crypto_aead_authsize(aead);
  
-+	nosupp_sg = crypto_tfm_alg_type(&aead->base) & CRYPTO_ALG_NOSUPP_SG;
++	nosupp_sg = crypto_tfm_alg_flags(&aead->base) & CRYPTO_ALG_NOSUPP_SG;
 +	if (nosupp_sg && skb_linearize(skb)) {
 +		return -ENOMEM;
 +	}
@@ -57,7 +71,7 @@
  	if (elen <= 0)
  		goto out;
  
-+	nosupp_sg = crypto_tfm_alg_type(&aead->base) & CRYPTO_ALG_NOSUPP_SG;
++	nosupp_sg = crypto_tfm_alg_flags(&aead->base) & CRYPTO_ALG_NOSUPP_SG;
 +	if (nosupp_sg && skb_linearize(skb)) {
 +		err = -ENOMEM;
 +		goto out;
@@ -80,7 +94,7 @@
  	aead = x->data;
  	alen = crypto_aead_authsize(aead);
  
-+	nosupp_sg = crypto_tfm_alg_type(&aead->base) & CRYPTO_ALG_NOSUPP_SG;
++	nosupp_sg = crypto_tfm_alg_flags(&aead->base) & CRYPTO_ALG_NOSUPP_SG;
 +	if (nosupp_sg && skb_linearize(skb)) {
 +		return -ENOMEM;
 +	}
@@ -100,7 +114,7 @@
  		goto out;
  	}
  
-+	nosupp_sg = crypto_tfm_alg_type(&aead->base) & CRYPTO_ALG_NOSUPP_SG;
++	nosupp_sg = crypto_tfm_alg_flags(&aead->base) & CRYPTO_ALG_NOSUPP_SG;
 +	if (nosupp_sg && skb_linearize(skb)) {
 +		ret = -ENOMEM;
 +		goto out;
