@@ -105,7 +105,7 @@ Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
  static inline __be16 vlan_proto(const struct sk_buff *skb)
  {
  	if (skb_vlan_tag_present(skb))
-@@ -1238,6 +1247,12 @@ static struct ctl_table brnf_table[] = {
+@@ -1240,6 +1249,12 @@ static struct ctl_table brnf_table[] = {
  		.mode		= 0644,
  		.proc_handler	= brnf_sysctl_call_tables,
  	},
@@ -118,7 +118,7 @@ Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
  	{ }
  };
  
-@@ -1246,6 +1261,7 @@ static inline void br_netfilter_sysctl_d
+@@ -1248,6 +1263,7 @@ static inline void br_netfilter_sysctl_d
  	brnf->call_iptables = 1;
  	brnf->call_ip6tables = 1;
  	brnf->call_arptables = 1;
@@ -126,7 +126,7 @@ Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
  	brnf->filter_vlan_tagged = 0;
  	brnf->filter_pppoe_tagged = 0;
  	brnf->pass_vlan_indev = 0;
-@@ -1269,6 +1285,7 @@ static int br_netfilter_sysctl_init_net(
+@@ -1271,6 +1287,7 @@ static int br_netfilter_sysctl_init_net(
  	table[3].data = &brnet->filter_vlan_tagged;
  	table[4].data = &brnet->filter_pppoe_tagged;
  	table[5].data = &brnet->pass_vlan_indev;

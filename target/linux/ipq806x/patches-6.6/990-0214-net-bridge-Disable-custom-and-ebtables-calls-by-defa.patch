@@ -14,7 +14,7 @@ Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
 
 --- a/net/bridge/br_netfilter_hooks.c
 +++ b/net/bridge/br_netfilter_hooks.c
-@@ -1268,8 +1268,8 @@ static inline void br_netfilter_sysctl_d
+@@ -1270,8 +1270,8 @@ static inline void br_netfilter_sysctl_d
  	brnf->call_iptables = 1;
  	brnf->call_ip6tables = 1;
  	brnf->call_arptables = 1;
