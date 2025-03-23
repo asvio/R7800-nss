@@ -1,0 +1,11 @@
+--- a/v1.0/src/nss_crypto_ctrl.c
++++ b/v1.0/src/nss_crypto_ctrl.c
+@@ -1223,7 +1223,7 @@ enum nss_crypto_max_ivlen nss_crypto_get
+ 
+ 	idx = &ctrl->idx_info[session_idx];
+ 	if (nss_crypto_chk_idx_isfree(idx))
+-		return NSS_CRYPTO_MAX_BLKLEN_NULL;
++		return NSS_CRYPTO_MAX_IVLEN_NULL;
+ 
+ 	return idx->iv_len;
+ }

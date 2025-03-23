@@ -19,10 +19,10 @@ comment "Build Options"
 #	bool
 #	default n
 #	prompt "Enable CLMAP"
-#config NSS_DRV_CRYPTO_ENABLE
-#	bool
-#	default n
-#	prompt "Enable CRYPTO"
+config NSS_DRV_CRYPTO_ENABLE
+	bool
+	default n
+	prompt "Enable CRYPTO"
 #config NSS_DRV_DTLS_ENABLE
 #	bool
 #	default n
