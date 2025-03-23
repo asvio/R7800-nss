@@ -9,3 +9,16 @@
  }
  
  int ieee80211_emulate_add_chanctx(struct ieee80211_hw *hw,
+diff --git a/net/mac80211/rx.c b/net/mac80211/rx.c
+index f6f060c..3bda31a 100644
+--- a/net/mac80211/rx.c
++++ b/net/mac80211/rx.c
+@@ -2645,7 +2645,7 @@ static void netif_rx_nss(struct ieee80211_rx_data *rx,
+ 	skb_push(skb, ETH_HLEN);
+ 	ret = nss_virt_if_tx_buf(sdata->nssctx, skb);
+ 	if (ret) {
+-		if (net_ratelimit()) {
++		if (net_ratelimit() && ret != NSS_TX_FAILURE_TOO_SHORT) {
+ 			sdata_err(sdata, "NSS TX failed with error: %s\n",
+ 				  nss_tx_status_str(ret));
+ 		}
