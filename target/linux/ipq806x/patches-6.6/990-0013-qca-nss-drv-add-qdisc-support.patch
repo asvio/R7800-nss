@@ -8,17 +8,14 @@
   *	@tc_at_ingress: used within tc_classify to distinguish in/egress
   *	@redirected: packet was redirected by packet classifier
   *	@from_ingress: packet was redirected from the ingress path
-@@ -970,6 +971,10 @@ struct sk_buff {
- 	__u8			offload_fwd_mark:1;
- 	__u8			offload_l3_fwd_mark:1;
- #endif
-+#ifdef CONFIG_NET_CLS_ACT
+@@ -939,6 +940,7 @@ struct sk_buff {
+ #ifdef CONFIG_NET_XGRESS
+ 	__u8			tc_at_ingress:1;	/* See TC_AT_INGRESS_MASK */
+ 	__u8			tc_skip_classify:1;
 +	__u8			tc_skip_classify_offload:1;
-+	__u16			tc_verd_qca_nss;
-+#endif
- 	__u8			redirected:1;
- #ifdef CONFIG_NET_REDIRECT
- 	__u8			from_ingress:1;
+ #endif
+ 	__u8			remcsum_offload:1;
+ 	__u8			csum_complete_sw:1;
 --- a/include/uapi/linux/pkt_cls.h
 +++ b/include/uapi/linux/pkt_cls.h
 @@ -139,6 +139,7 @@ enum tca_id {
@@ -29,31 +26,6 @@
  	/* other actions go here */
  	__TCA_ID_MAX = 255
  };
-@@ -817,4 +818,14 @@ enum {
- 	TCF_EM_OPND_LT
- };
- 
-+
-+#define _TC_MAKE32(x)		((x))
-+#define _TC_MAKEMASK1(n)	(_TC_MAKE32(1) << _TC_MAKE32(n))
-+
-+#define TC_NCLS                 _TC_MAKEMASK1(8)
-+#define TC_NCLS_NSS		_TC_MAKEMASK1(12)
-+#define SET_TC_NCLS_NSS(v)	( TC_NCLS_NSS | ((v) & ~TC_NCLS_NSS))
-+#define CLR_TC_NCLS_NSS(v)	( (v) & ~TC_NCLS_NSS)
-+
-+
- #endif
---- a/include/linux/timer.h
-+++ b/include/linux/timer.h
-@@ -17,6 +17,7 @@ struct timer_list {
- 	unsigned long		expires;
- 	void			(*function)(struct timer_list *);
- 	u32			flags;
-+	unsigned long		cust_data;
- 
- #ifdef CONFIG_LOCKDEP
- 	struct lockdep_map	lockdep_map;
 --- a/drivers/net/ifb.c
 +++ b/drivers/net/ifb.c
 @@ -151,6 +151,31 @@ resched:
@@ -108,11 +80,10 @@
   *  @sync: function to call if address should be added
 --- a/include/uapi/linux/pkt_sched.h
 +++ b/include/uapi/linux/pkt_sched.h
-@@ -1306,4 +1306,248 @@ enum {
+@@ -119,6 +119,249 @@ enum {
  
- #define TCA_ETS_MAX (__TCA_ETS_MAX - 1)
+ #define TCA_STAB_MAX (__TCA_STAB_MAX - 1)
  
-+
 +enum {
 +	TCA_NSS_ACCEL_MODE_NSS_FW,
 +	TCA_NSS_ACCEL_MODE_PPE,
@@ -356,36 +327,9 @@
 +	__u8	accel_mode;	/* Dictates which data plane offloads the qdisc */
 +};
 +
- #endif
---- a/net/sched/sch_api.c
-+++ b/net/sched/sch_api.c
-@@ -2399,4 +2399,26 @@ static int __init pktsched_init(void)
- 	return 0;
- }
+ /* FIFO section */
  
-+
-+bool tcf_destroy(struct tcf_proto *tp, bool force)
-+{
-+	tp->ops->destroy(tp, force, NULL);
-+	module_put(tp->ops->owner);
-+	kfree_rcu(tp, rcu);
-+
-+	return true;
-+}
-+
-+void tcf_destroy_chain(struct tcf_proto __rcu **fl)
-+{
-+	struct tcf_proto *tp;
-+
-+	while ((tp = rtnl_dereference(*fl)) != NULL) {
-+		RCU_INIT_POINTER(*fl, tp->next);
-+		tcf_destroy(tp, true);
-+	}
-+}
-+EXPORT_SYMBOL(tcf_destroy_chain);
-+
-+
- subsys_initcall(pktsched_init);
+ struct tc_fifo_qopt {
 --- a/net/sched/sch_generic.c
 +++ b/net/sched/sch_generic.c
 @@ -1059,7 +1059,7 @@ static void qdisc_free_cb(struct rcu_hea
@@ -415,10 +359,13 @@
  	u32			limit;
  	const struct Qdisc_ops	*ops;
  	struct qdisc_size_table	__rcu *stab;
-@@ -752,6 +753,40 @@ static inline bool skb_skip_tc_classify(
- 	return false;
- }
- 
+@@ -748,6 +749,40 @@ static inline bool skb_skip_tc_classify(
+ 		return true;
+ 	}
+ #endif
++	return false;
++}
++
 +/*
 + * Set skb classify bit field.
 + */
@@ -450,19 +397,18 @@
 +		return true;
 +	}
 +#endif
-+	return false;
-+}
-+
- /* Reset all TX qdiscs greater than index of a device.  */
- static inline void qdisc_reset_all_tx_gt(struct net_device *dev, unsigned int i)
- {
-@@ -1323,4 +1358,9 @@ static inline void qdisc_synchronize(con
- 		msleep(1);
+ 	return false;
  }
  
+@@ -802,6 +802,11 @@ static inline void qdisc_reset_all_tx_gt(struct net_device *dev, unsigned int i)
+ 	}
+ }
+ 
++static inline void qdisc_reset_all_tx(struct net_device *dev)
++{
++	qdisc_reset_all_tx_gt(dev, 0);
++}
 +
-+void qdisc_destroy(struct Qdisc *qdisc);
-+void tcf_destroy_chain(struct tcf_proto __rcu **fl);
-+
-+
- #endif
+ /* Are all TX queues of the device empty?  */
+ static inline bool qdisc_all_tx_empty(const struct net_device *dev)
+ {
