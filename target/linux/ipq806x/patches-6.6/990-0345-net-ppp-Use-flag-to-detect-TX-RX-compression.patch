@@ -12,7 +12,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
 
 --- a/drivers/net/ppp/ppp_generic.c
 +++ b/drivers/net/ppp/ppp_generic.c
-@@ -3690,7 +3690,7 @@ bool ppp_is_cp_enabled(struct net_device
+@@ -3700,7 +3700,7 @@ bool ppp_is_cp_enabled(struct net_device
  
  	ppp = netdev_priv(dev);
  	ppp_lock(ppp);

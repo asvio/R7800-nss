@@ -75,7 +75,7 @@ Signed-off-by: Ram Chandra Jangir <quic_rjangir@quicinc.com>
  	NF_SYSCTL_CT_PROTO_TCP_IGNORE_INVALID_RST,
  	NF_SYSCTL_CT_PROTO_TCP_MAX_RETRANS,
  	NF_SYSCTL_CT_PROTO_TIMEOUT_UDP,
-@@ -834,6 +835,14 @@ static struct ctl_table nf_ct_sysctl_tab
+@@ -838,6 +839,14 @@ static struct ctl_table nf_ct_sysctl_tab
  		.extra1 	= SYSCTL_ZERO,
  		.extra2 	= SYSCTL_ONE,
  	},
@@ -90,7 +90,7 @@ Signed-off-by: Ram Chandra Jangir <quic_rjangir@quicinc.com>
  	[NF_SYSCTL_CT_PROTO_TCP_IGNORE_INVALID_RST] = {
  		.procname	= "nf_conntrack_tcp_ignore_invalid_rst",
  		.maxlen		= sizeof(u8),
-@@ -1035,6 +1044,7 @@ static void nf_conntrack_standalone_init
+@@ -1041,6 +1050,7 @@ static void nf_conntrack_standalone_init
  
  	XASSIGN(LOOSE, &tn->tcp_loose);
  	XASSIGN(LIBERAL, &tn->tcp_be_liberal);

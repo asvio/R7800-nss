@@ -13,7 +13,7 @@ Signed-off-by: Subhash Kumar Katnapally <quic_skatnapa@quicinc.com>
 
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -2097,6 +2097,9 @@ static int call_netdevice_notifiers_mtu(
+@@ -2128,6 +2128,9 @@ static int call_netdevice_notifiers_mtu(
  	return call_netdevice_notifiers_info(val, &info.info);
  }
  
@@ -23,7 +23,7 @@ Signed-off-by: Subhash Kumar Katnapally <quic_skatnapa@quicinc.com>
  #ifdef CONFIG_NET_INGRESS
  static DEFINE_STATIC_KEY_FALSE(ingress_needed_key);
  
-@@ -5543,11 +5546,13 @@ another_round:
+@@ -5574,11 +5577,13 @@ another_round:
  			goto out;
  	}
  
@@ -42,7 +42,7 @@ Signed-off-by: Subhash Kumar Katnapally <quic_skatnapa@quicinc.com>
  		}
  	}
  
-@@ -5603,6 +5608,24 @@ skip_classify:
+@@ -5634,6 +5639,24 @@ skip_classify:
  			goto out;
  	}
  

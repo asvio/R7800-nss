@@ -16,7 +16,7 @@ Signed-off-by: Pavithra R <pavir@codeaurora.org>
 
 --- a/net/ipv4/ip_gre.c
 +++ b/net/ipv4/ip_gre.c
-@@ -687,6 +687,8 @@ static netdev_tx_t ipgre_xmit(struct sk_
+@@ -691,6 +691,8 @@ static netdev_tx_t ipgre_xmit(struct sk_
  	if (gre_handle_offloads(skb, !!(tunnel->parms.o_flags & TUNNEL_CSUM)))
  		goto free_skb;
  
@@ -25,7 +25,7 @@ Signed-off-by: Pavithra R <pavir@codeaurora.org>
  	__gre_xmit(skb, dev, tnl_params, skb->protocol);
  	return NETDEV_TX_OK;
  
-@@ -770,6 +772,8 @@ static netdev_tx_t gre_tap_xmit(struct s
+@@ -774,6 +776,8 @@ static netdev_tx_t gre_tap_xmit(struct s
  	if (skb_cow_head(skb, dev->needed_headroom))
  		goto free_skb;
  

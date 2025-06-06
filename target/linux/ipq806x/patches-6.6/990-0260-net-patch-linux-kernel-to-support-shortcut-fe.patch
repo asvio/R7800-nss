@@ -27,7 +27,7 @@ Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
  	__u16			tc_index;	/* traffic control index */
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -3595,8 +3595,13 @@ static int xmit_one(struct sk_buff *skb,
+@@ -3626,8 +3626,13 @@ static int xmit_one(struct sk_buff *skb,
  	unsigned int len;
  	int rc;
  
@@ -43,7 +43,7 @@ Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
  
  #ifdef CONFIG_ETHERNET_PACKET_MANGLE
  	if (dev->eth_mangle_tx && !(skb = dev->eth_mangle_tx(dev, skb)))
-@@ -5449,6 +5454,9 @@ void netdev_rx_handler_unregister(struct
+@@ -5480,6 +5485,9 @@ void netdev_rx_handler_unregister(struct
  }
  EXPORT_SYMBOL_GPL(netdev_rx_handler_unregister);
  
@@ -53,7 +53,7 @@ Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
  /*
   * Limit the use of PFMEMALLOC reserves to those protocols that implement
   * the special handling of PFMEMALLOC skbs.
-@@ -5496,6 +5504,7 @@ static int __netif_receive_skb_core(stru
+@@ -5527,6 +5535,7 @@ static int __netif_receive_skb_core(stru
  	bool deliver_exact = false;
  	int ret = NET_RX_DROP;
  	__be16 type;
@@ -61,7 +61,7 @@ Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
  
  	net_timestamp_check(!READ_ONCE(netdev_tstamp_prequeue), skb);
  
-@@ -5534,6 +5543,14 @@ another_round:
+@@ -5565,6 +5574,14 @@ another_round:
  			goto out;
  	}
  

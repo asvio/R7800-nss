@@ -34,7 +34,7 @@ Signed-off-by: Amruth S <quic_amrus@quicinc.com>
  
  #include <linux/nsproxy.h>
  #include <net/net_namespace.h>
-@@ -3500,6 +3501,8 @@ ppp_connect_channel(struct channel *pch,
+@@ -3510,6 +3511,8 @@ ppp_connect_channel(struct channel *pch,
  	struct ppp_net *pn;
  	int ret = -ENXIO;
  	int hdrlen;
@@ -43,7 +43,7 @@ Signed-off-by: Amruth S <quic_amrus@quicinc.com>
  	int notify = 0;
  
  	pn = ppp_pernet(pch->chan_net);
-@@ -3533,6 +3536,30 @@ ppp_connect_channel(struct channel *pch,
+@@ -3543,6 +3546,30 @@ ppp_connect_channel(struct channel *pch,
  	++ppp->n_channels;
  	pch->ppp = ppp;
  	refcount_inc(&ppp->file.refcnt);
@@ -74,7 +74,7 @@ Signed-off-by: Amruth S <quic_amrus@quicinc.com>
  	notify = 1;
  
  	ppp_unlock(ppp);
-@@ -3783,6 +3810,18 @@ int ppp_channel_get_protocol(struct ppp_
+@@ -3793,6 +3820,18 @@ int ppp_channel_get_protocol(struct ppp_
  }
  EXPORT_SYMBOL(ppp_channel_get_protocol);
  
@@ -93,7 +93,7 @@ Signed-off-by: Amruth S <quic_amrus@quicinc.com>
  /* ppp_channel_hold()
   *	Call this to hold a channel.
   *
-@@ -3936,6 +3975,28 @@ void ppp_release_channels(struct ppp_cha
+@@ -3946,6 +3985,28 @@ void ppp_release_channels(struct ppp_cha
  }
  EXPORT_SYMBOL(ppp_release_channels);
  

@@ -26,7 +26,7 @@ Signed-off-by: Ken Zhu <quic_guigenz@quicinc.com>
  void unregister_netdevice_many(struct list_head *head);
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -4298,6 +4298,80 @@ struct netdev_queue *netdev_core_pick_tx
+@@ -4329,6 +4329,80 @@ struct netdev_queue *netdev_core_pick_tx
  }
  
  /**
