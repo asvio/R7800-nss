@@ -27,7 +27,7 @@ Signed-off-by: Ratheesh Kannoth <quic_rkannoth@quicinc.com>
  /*******************************************************************************
   *
   *			    Device Interface Subroutines
-@@ -1639,7 +1637,6 @@ void dev_close(struct net_device *dev)
+@@ -1670,7 +1668,6 @@ void dev_close(struct net_device *dev)
  }
  EXPORT_SYMBOL(dev_close);
  
@@ -35,7 +35,7 @@ Signed-off-by: Ratheesh Kannoth <quic_rkannoth@quicinc.com>
  /**
   *	dev_disable_lro - disable Large Receive Offload on a device
   *	@dev: device
-@@ -3228,7 +3225,6 @@ void dev_kfree_skb_any_reason(struct sk_
+@@ -3259,7 +3256,6 @@ void dev_kfree_skb_any_reason(struct sk_
  }
  EXPORT_SYMBOL(dev_kfree_skb_any_reason);
  
@@ -43,7 +43,7 @@ Signed-off-by: Ratheesh Kannoth <quic_rkannoth@quicinc.com>
  /**
   * netif_device_detach - mark device as removed
   * @dev: network device
-@@ -5540,12 +5536,6 @@ another_round:
+@@ -5571,12 +5567,6 @@ another_round:
  		}
  	}
  
@@ -56,7 +56,7 @@ Signed-off-by: Ratheesh Kannoth <quic_rkannoth@quicinc.com>
  	if (likely(!fast_tc_filter)) {
  		fast_recv = rcu_dereference(athrs_fast_nat_recv);
  		if (fast_recv) {
-@@ -5556,6 +5546,12 @@ another_round:
+@@ -5587,6 +5577,12 @@ another_round:
  		}
  	}
  
@@ -69,7 +69,7 @@ Signed-off-by: Ratheesh Kannoth <quic_rkannoth@quicinc.com>
  	if (skb_skip_tc_classify(skb))
  		goto skip_classify;
  
-@@ -8552,7 +8548,6 @@ void *netdev_lower_dev_get_private(struc
+@@ -8583,7 +8579,6 @@ void *netdev_lower_dev_get_private(struc
  }
  EXPORT_SYMBOL(netdev_lower_dev_get_private);
  

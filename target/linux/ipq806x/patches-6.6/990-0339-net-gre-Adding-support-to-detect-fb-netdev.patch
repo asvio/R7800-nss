@@ -38,7 +38,7 @@ Signed-off-by: Swati Singh <quic_swasing@quicinc.com>
  #endif /* __NET_IP_TUNNELS_H */
 --- a/net/ipv4/ip_gre.c
 +++ b/net/ipv4/ip_gre.c
-@@ -459,6 +459,26 @@ drop:
+@@ -463,6 +463,26 @@ drop:
  	return 0;
  }
  

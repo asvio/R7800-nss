@@ -57,7 +57,7 @@ Signed-off-by: Murat Sezgin <quic_msezgin@quicinc.com>
 
 --- a/drivers/net/ppp/ppp_generic.c
 +++ b/drivers/net/ppp/ppp_generic.c
-@@ -255,6 +255,24 @@ struct ppp_net {
+@@ -266,6 +266,24 @@ struct ppp_net {
  #define seq_before(a, b)	((s32)((a) - (b)) < 0)
  #define seq_after(a, b)		((s32)((a) - (b)) > 0)
  
@@ -82,7 +82,7 @@ Signed-off-by: Murat Sezgin <quic_msezgin@quicinc.com>
  /* Prototypes. */
  static int ppp_unattached_ioctl(struct net *net, struct ppp_file *pf,
  			struct file *file, unsigned int cmd, unsigned long arg);
-@@ -3468,6 +3486,7 @@ ppp_connect_channel(struct channel *pch,
+@@ -3478,6 +3496,7 @@ ppp_connect_channel(struct channel *pch,
  	struct ppp_net *pn;
  	int ret = -ENXIO;
  	int hdrlen;
@@ -90,7 +90,7 @@ Signed-off-by: Murat Sezgin <quic_msezgin@quicinc.com>
  
  	pn = ppp_pernet(pch->chan_net);
  
-@@ -3500,6 +3519,8 @@ ppp_connect_channel(struct channel *pch,
+@@ -3510,6 +3529,8 @@ ppp_connect_channel(struct channel *pch,
  	++ppp->n_channels;
  	pch->ppp = ppp;
  	refcount_inc(&ppp->file.refcnt);
@@ -99,7 +99,7 @@ Signed-off-by: Murat Sezgin <quic_msezgin@quicinc.com>
  	ppp_unlock(ppp);
  	ret = 0;
  
-@@ -3507,6 +3528,14 @@ ppp_connect_channel(struct channel *pch,
+@@ -3517,6 +3538,14 @@ ppp_connect_channel(struct channel *pch,
  	write_unlock_bh(&pch->upl);
   out:
  	mutex_unlock(&pn->all_ppp_mutex);
@@ -114,7 +114,7 @@ Signed-off-by: Murat Sezgin <quic_msezgin@quicinc.com>
  	return ret;
  }
  
-@@ -3524,6 +3553,13 @@ ppp_disconnect_channel(struct channel *p
+@@ -3534,6 +3563,13 @@ ppp_disconnect_channel(struct channel *p
  	pch->ppp = NULL;
  	write_unlock_bh(&pch->upl);
  	if (ppp) {
@@ -128,7 +128,7 @@ Signed-off-by: Murat Sezgin <quic_msezgin@quicinc.com>
  		/* remove it from the ppp unit's list */
  		ppp_lock(ppp);
  		list_del(&pch->clist);
-@@ -3603,6 +3639,188 @@ static void *unit_find(struct idr *p, in
+@@ -3613,6 +3649,188 @@ static void *unit_find(struct idr *p, in
  	return idr_find(p, n);
  }
  
@@ -317,7 +317,7 @@ Signed-off-by: Murat Sezgin <quic_msezgin@quicinc.com>
  /* Module/initialization stuff */
  
  module_init(ppp_init);
-@@ -3619,6 +3837,8 @@ EXPORT_SYMBOL(ppp_input_error);
+@@ -3629,6 +3847,8 @@ EXPORT_SYMBOL(ppp_input_error);
  EXPORT_SYMBOL(ppp_output_wakeup);
  EXPORT_SYMBOL(ppp_register_compressor);
  EXPORT_SYMBOL(ppp_unregister_compressor);

@@ -26,7 +26,7 @@ Signed-off-by: Tallapragada Kalyan <quic_ktallapr@quicinc.com>
  	__u16			tc_index;	/* traffic control index */
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -4313,6 +4313,10 @@ bool dev_fast_xmit(struct sk_buff *skb,
+@@ -4344,6 +4344,10 @@ bool dev_fast_xmit(struct sk_buff *skb,
  	int cpu;
  	netdev_tx_t rc;
  

@@ -104,7 +104,7 @@ Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
  		    br_multicast_querier_exists(brmctx, eth_hdr(skb), mdst)) {
 --- a/net/bridge/br_private.h
 +++ b/net/bridge/br_private.h
-@@ -908,6 +908,7 @@ void br_manage_promisc(struct net_bridge
+@@ -909,6 +909,7 @@ void br_manage_promisc(struct net_bridge
  int nbp_backup_change(struct net_bridge_port *p, struct net_device *backup_dev);
  
  /* br_input.c */
@@ -112,7 +112,7 @@ Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
  int br_handle_frame_finish(struct net *net, struct sock *sk, struct sk_buff *skb);
  rx_handler_func_t *br_get_rx_handler(const struct net_device *dev);
  
-@@ -2282,4 +2283,8 @@ void br_do_suppress_nd(struct sk_buff *s
+@@ -2283,4 +2284,8 @@ void br_do_suppress_nd(struct sk_buff *s
  		       u16 vid, struct net_bridge_port *p, struct nd_msg *msg);
  struct nd_msg *br_is_nd_neigh_msg(struct sk_buff *skb, struct nd_msg *m);
  bool br_is_neigh_suppress_enabled(const struct net_bridge_port *p, u16 vid);
