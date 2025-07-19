@@ -201,7 +201,7 @@ Signed-off-by: Amitesh Anand <quic_amitesh@quicinc.com>
  
  #define BR_HASH_BITS 8
  #define BR_HASH_SIZE (1 << BR_HASH_BITS)
-@@ -2288,4 +2289,12 @@ bool br_is_neigh_suppress_enabled(const
+@@ -2297,4 +2298,12 @@ bool br_is_neigh_suppress_enabled(const
  #define __br_get(__hook, __default, __args ...) \
  		(__hook ? (__hook(__args)) : (__default))
  

@@ -302,7 +302,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  	int link_reporting;
  	int res = 0, i;
  
-@@ -2325,6 +2355,13 @@ int bond_enslave(struct net_device *bond
+@@ -2336,6 +2366,13 @@ skip_mac_set:
  		   bond_is_active_slave(new_slave) ? "an active" : "a backup",
  		   new_slave->link != BOND_LINK_DOWN ? "an up" : "a down");
  
@@ -316,7 +316,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  	/* enslave is successful */
  	bond_queue_slave_event(new_slave);
  	return 0;
-@@ -2390,6 +2427,13 @@ err_undo_flags:
+@@ -2401,6 +2438,13 @@ err_undo_flags:
  		}
  	}
  
@@ -330,7 +330,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  	return res;
  }
  
-@@ -2411,6 +2455,7 @@ static int __bond_release_one(struct net
+@@ -2422,6 +2466,7 @@ static int __bond_release_one(struct net
  	struct bonding *bond = netdev_priv(bond_dev);
  	struct slave *slave, *oldcurrent;
  	struct sockaddr_storage ss;
@@ -338,7 +338,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  	int old_flags = bond_dev->flags;
  	netdev_features_t old_features = bond_dev->features;
  
-@@ -2433,6 +2478,13 @@ static int __bond_release_one(struct net
+@@ -2444,6 +2489,13 @@ static int __bond_release_one(struct net
  
  	bond_set_slave_inactive_flags(slave, BOND_SLAVE_NOTIFY_NOW);
  
@@ -352,7 +352,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  	bond_sysfs_slave_del(slave);
  
  	/* recompute stats just before removing the slave */
-@@ -2761,8 +2813,8 @@ static void bond_miimon_commit(struct bo
+@@ -2772,8 +2824,8 @@ static void bond_miimon_commit(struct bo
  	struct slave *slave, *primary, *active;
  	bool do_failover = false;
  	struct list_head *iter;
@@ -363,7 +363,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  
  	bond_for_each_slave(bond, slave, iter) {
  		switch (slave->link_new_state) {
-@@ -2800,6 +2852,10 @@ static void bond_miimon_commit(struct bo
+@@ -2811,6 +2863,10 @@ static void bond_miimon_commit(struct bo
  				bond_set_active_slave(slave);
  			}
  
@@ -374,7 +374,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  			slave_info(bond->dev, slave->dev, "link status definitely up, %u Mbps %s duplex\n",
  				   slave->speed == SPEED_UNKNOWN ? 0 : slave->speed,
  				   slave->duplex ? "full" : "half");
-@@ -2848,6 +2904,14 @@ static void bond_miimon_commit(struct bo
+@@ -2859,6 +2915,14 @@ static void bond_miimon_commit(struct bo
  		unblock_netpoll_tx();
  	}
  
@@ -389,7 +389,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  	bond_set_carrier(bond);
  }
  
-@@ -4100,11 +4164,221 @@ static inline u32 bond_eth_hash(struct s
+@@ -4111,11 +4175,221 @@ static inline u32 bond_eth_hash(struct s
  		return 0;
  
  	ep = (struct ethhdr *)(data + mhoff);
@@ -612,7 +612,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  {
  	const struct ipv6hdr *iph6;
  	const struct iphdr *iph;
-@@ -5230,15 +5504,16 @@ static netdev_tx_t bond_3ad_xor_xmit(str
+@@ -5241,15 +5515,16 @@ static netdev_tx_t bond_3ad_xor_xmit(str
  				     struct net_device *dev)
  {
  	struct bonding *bond = netdev_priv(dev);
@@ -636,7 +636,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  }
  
  /* in broadcast mode, we send everything to all usable interfaces. */
-@@ -5488,8 +5763,9 @@ static netdev_tx_t __bond_start_xmit(str
+@@ -5499,8 +5774,9 @@ static netdev_tx_t __bond_start_xmit(str
  		return bond_xmit_roundrobin(skb, dev);
  	case BOND_MODE_ACTIVEBACKUP:
  		return bond_xmit_activebackup(skb, dev);
@@ -647,7 +647,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  		return bond_3ad_xor_xmit(skb, dev);
  	case BOND_MODE_BROADCAST:
  		return bond_xmit_broadcast(skb, dev);
-@@ -5926,6 +6202,9 @@ static void bond_destructor(struct net_d
+@@ -5937,6 +6213,9 @@ static void bond_destructor(struct net_d
  	if (bond->wq)
  		destroy_workqueue(bond->wq);
  
@@ -657,7 +657,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  	free_percpu(bond->rr_tx_counter);
  }
  
-@@ -6479,6 +6758,11 @@ int bond_create(struct net *net, const c
+@@ -6490,6 +6769,11 @@ int bond_create(struct net *net, const c
  
  	bond_work_init_all(bond);
  

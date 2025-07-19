@@ -104,7 +104,7 @@ Signed-off-by: Murat Sezgin <quic_msezgin@quicinc.com>
  	const struct net_device_ops *netdev_ops;
  	const struct xdp_metadata_ops *xdp_metadata_ops;
  	int			ifindex;
-@@ -4297,7 +4326,6 @@ static inline bool netif_dormant(const s
+@@ -4298,7 +4327,6 @@ static inline bool netif_dormant(const s
  	return test_bit(__LINK_STATE_DORMANT, &dev->state);
  }
  
@@ -112,7 +112,7 @@ Signed-off-by: Murat Sezgin <quic_msezgin@quicinc.com>
  /**
   *	netif_testing_on - mark device as under test.
   *	@dev: network device
-@@ -5249,6 +5277,11 @@ static inline bool netif_is_failover_sla
+@@ -5250,6 +5278,11 @@ static inline bool netif_is_failover_sla
  	return dev->priv_flags & IFF_FAILOVER_SLAVE;
  }
  

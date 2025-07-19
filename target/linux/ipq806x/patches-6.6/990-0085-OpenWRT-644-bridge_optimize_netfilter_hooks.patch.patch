@@ -144,7 +144,7 @@ Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
  
  #define BR_HASH_BITS 8
  #define BR_HASH_SIZE (1 << BR_HASH_BITS)
-@@ -1933,12 +1934,25 @@ extern const struct nf_br_ops __rcu *nf_
+@@ -1942,12 +1943,25 @@ extern const struct nf_br_ops __rcu *nf_
  int br_nf_core_init(void);
  void br_nf_core_fini(void);
  void br_netfilter_rtable_init(struct net_bridge *);

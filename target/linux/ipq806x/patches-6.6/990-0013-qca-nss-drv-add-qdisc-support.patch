@@ -62,7 +62,7 @@
  {
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
-@@ -4692,6 +4692,15 @@ void dev_uc_flush(struct net_device *dev
+@@ -4693,6 +4693,15 @@ void dev_uc_flush(struct net_device *dev
  void dev_uc_init(struct net_device *dev);
  
  /**
